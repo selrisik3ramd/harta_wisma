@@ -1,5 +1,4 @@
-// TODO: REPLACE THIS WITH YOUR DEPLOYED URL SO ALL VISITORS SEE THE SAME DATA
-const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzkQxjjYFgQM6cEI3xci7_bqLzLTSFThnqhW3_oKOn5A2sNZ9p6MsP6LX5BF_EeqgkvgA/exec';
+const DEFAULT_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL || '';
 
 const getScriptUrl = () => {
     const localUrl = localStorage.getItem('harta_wisma_script_url');
