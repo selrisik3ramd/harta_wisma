@@ -1,10 +1,11 @@
 import { Wallet, DollarSign, Layers } from 'lucide-react';
 import { useAssets } from '../../context/AssetContext';
+import { formatCurrency, getAssetTypeLabel, calculateTotalValue } from '../../utils/formatters';
 
 const SummaryCards = () => {
     const { assets } = useAssets();
 
-    const totalValue = assets.reduce((sum, asset) => sum + ((parseFloat(asset.value) || 0) * (parseInt(asset.quantity) || 1)), 0);
+    const totalValue = assets.reduce((sum, asset) => sum + calculateTotalValue(asset.value, asset.quantity), 0);
     const totalUniqueAssets = assets.length;
     const totalUnits = assets.reduce((sum, asset) => sum + (parseInt(asset.quantity) || 1), 0);
     const averageValue = totalUnits > 0 ? totalValue / totalUnits : 0;
@@ -16,23 +17,10 @@ const SummaryCards = () => {
     }, {});
     const dominantCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
 
-    const getLabel = (type) => {
-        if (!type || type === 'N/A') return 'Tiada Data';
-        return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-    };
-
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat('en-MY', {
-            style: 'currency',
-            currency: 'MYR',
-            maximumFractionDigits: 0,
-        }).format(value);
-    };
-
     const cards = [
         {
             title: 'NILAI KESELURUHAN',
-            value: formatCurrency(totalValue),
+            value: formatCurrency(totalValue, 0),
             icon: DollarSign,
             color: 'bg-emerald-600',
             trend: 'PORTFOLIO AKTIF',
@@ -50,7 +38,7 @@ const SummaryCards = () => {
         },
         {
             title: 'KATEGORI DOMINAN',
-            value: getLabel(dominantCategory).toUpperCase(),
+            value: getAssetTypeLabel(dominantCategory).toUpperCase(),
             icon: Wallet,
             color: 'bg-orange-500',
             trend: 'YANG TERBANYAK',
@@ -59,7 +47,7 @@ const SummaryCards = () => {
         },
         {
             title: 'PURATA NILAI UNIT',
-            value: formatCurrency(averageValue),
+            value: formatCurrency(averageValue, 0),
             icon: Wallet,
             color: 'bg-blue-500',
             trend: 'NILAI SEUNIT',

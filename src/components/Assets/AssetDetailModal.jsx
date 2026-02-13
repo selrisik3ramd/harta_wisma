@@ -1,4 +1,5 @@
 import { X, Monitor, Armchair, Utensils, Layers, Calendar, DollarSign, MapPin, Package } from 'lucide-react';
+import { formatCurrency, formatDate, getAssetTypeLabel, calculateTotalValue } from '../../utils/formatters';
 
 const AssetDetailModal = ({ asset, isOpen, onClose }) => {
     if (!isOpen || !asset) return null;
@@ -10,17 +11,6 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
             case 'cutlery': return <Utensils size={24} className="text-gray-500" />;
             default: return <Layers size={24} className="text-gray-500" />;
         }
-    };
-
-    const getLabel = (type) => {
-        return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-    };
-
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat('en-MY', {
-            style: 'currency',
-            currency: 'MYR',
-        }).format(value);
     };
 
     return (
@@ -44,10 +34,10 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                         <div className="flex items-center gap-2 mb-1">
                             {getIcon(asset.type)}
                             <span className="text-indigo-300 text-[10px] font-black uppercase tracking-widest">
-                                {getLabel(asset.type)}
+                                {getAssetTypeLabel(asset.type)}
                             </span>
                         </div>
-                        <h3 className="text-2xl font-black text-white">{asset.name.toUpperCase()}</h3>
+                        <h3 className="text-2xl font-black text-white">{(asset.name || 'TANPA NAMA').toUpperCase()}</h3>
                     </div>
                 </div>
 
@@ -68,7 +58,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                                 <span className="text-[10px] font-black uppercase tracking-wider">Kuantiti</span>
                             </div>
                             <p className="text-sm font-bold text-gray-900 border-l-4 border-orange-500 pl-3">
-                                {asset.quantity} UNIT
+                                {parseInt(asset.quantity) || 1} UNIT
                             </p>
                         </div>
                     </div>
@@ -89,7 +79,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                                 <span className="text-[10px] font-black uppercase tracking-wider">Tarikh</span>
                             </div>
                             <p className="text-sm font-bold text-gray-900 border-l-4 border-gray-400 pl-3">
-                                {new Date(asset.date).toLocaleDateString('ms-MY', { day: '2-digit', month: 'long', year: 'numeric' })}
+                                {formatDate(asset.date)}
                             </p>
                         </div>
                     </div>
@@ -99,7 +89,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                             <div>
                                 <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Jumlah Nilai Keseluruhan</span>
                                 <p className="text-2xl font-black text-indigo-700">
-                                    {formatCurrency(asset.value * asset.quantity)}
+                                    {formatCurrency(calculateTotalValue(asset.value, asset.quantity))}
                                 </p>
                             </div>
                             <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-600">

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Trash2, Layers, Monitor, Armchair, Utensils, Search, Image as ImageIcon, Edit2 } from 'lucide-react';
 import { useAssets } from '../../context/AssetContext';
 import EditAssetModal from './EditAssetModal';
+import { formatCurrency, formatDate, getAssetTypeLabel, calculateTotalValue } from '../../utils/formatters';
 
 const AssetContainer = () => {
     const { assets, deleteAsset } = useAssets();
@@ -17,19 +18,6 @@ const AssetContainer = () => {
             default: return <Layers size={20} className="text-gray-500" />;
         }
     };
-
-    const getLabel = (type) => {
-        if (!type) return 'N/A';
-        return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-    };
-
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat('en-MY', {
-            style: 'currency',
-            currency: 'MYR',
-        }).format(value);
-    };
-
     const filteredAssets = assets
         .filter(asset =>
             asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -48,12 +36,12 @@ const AssetContainer = () => {
         const headers = ['Nama Aset', 'Jenis', 'Lokasi', 'Kuantiti', 'Tarikh', 'Nilai Seunit (RM)', 'Jumlah (RM)'];
         const rows = filteredAssets.map(asset => [
             asset.name,
-            getLabel(asset.type),
+            getAssetTypeLabel(asset.type),
             asset.location || '-',
             asset.quantity || 1,
-            new Date(asset.date).toLocaleDateString(),
-            asset.value,
-            asset.value * (asset.quantity || 1)
+            formatDate(asset.date),
+            asset.value || 0,
+            calculateTotalValue(asset.value, asset.quantity)
         ]);
 
         const csvContent = "data:text/csv;charset=utf-8,"
@@ -167,10 +155,10 @@ const AssetContainer = () => {
                                         <span className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{asset.name}</span>
                                         <div className="flex items-center gap-2 mt-1">
                                             <span className="px-2 py-0.5 bg-gray-100 text-[10px] font-bold text-gray-500 rounded uppercase tracking-tighter">
-                                                {getLabel(asset.type)}
+                                                {getAssetTypeLabel(asset.type)}
                                             </span>
                                             <span className="text-[10px] text-gray-400 tabular-nums">
-                                                {new Date(asset.date).toLocaleDateString('ms-MY', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                {formatDate(asset.date)}
                                             </span>
                                         </div>
                                     </div>
@@ -193,7 +181,7 @@ const AssetContainer = () => {
                                 </td>
                                 <td className="px-6 py-5 text-right">
                                     <span className="text-sm font-black text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100 tabular-nums shadow-sm">
-                                        {formatCurrency(asset.value * (asset.quantity || 1))}
+                                        {formatCurrency(calculateTotalValue(asset.value, asset.quantity))}
                                     </span>
                                 </td>
                                 <td className="px-6 py-5 text-right">
@@ -235,7 +223,7 @@ const AssetContainer = () => {
                             <td className="px-6 py-6" colSpan="1"></td>
                             <td className="px-6 py-6 text-right">
                                 <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Nilai Inventori</p>
-                                <p className="text-xl font-black text-white">{formatCurrency(filteredAssets.reduce((sum, a) => sum + ((parseFloat(a.value) || 0) * (parseInt(a.quantity) || 1)), 0))}</p>
+                                <p className="text-xl font-black text-white">{formatCurrency(filteredAssets.reduce((sum, a) => sum + calculateTotalValue(a.value, a.quantity), 0))}</p>
                             </td>
                             <td className="px-6 py-6"></td>
                         </tr>
