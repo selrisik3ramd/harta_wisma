@@ -10,6 +10,7 @@ const AddAssetModal = ({ isOpen, onClose }) => {
     const [imagePreview, setImagePreview] = useState(null);
     const [savedAsset, setSavedAsset] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isCompressing, setIsCompressing] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -26,7 +27,52 @@ const AddAssetModal = ({ isOpen, onClose }) => {
 
     if (!isOpen) return null;
 
-    const handleImageChange = (e) => {
+    const compressImage = (base64Str) => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.src = base64Str;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                // Extremely small for guaranteed Google Sheets compatibility
+                const MAX_WIDTH = 250;
+                const MAX_HEIGHT = 250;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                // Lower quality to 0.3 for very small payload
+                const compressedData = canvas.toDataURL('image/jpeg', 0.3);
+
+                // Google Sheets cell limit is 50k, but we want to stay well under
+                if (compressedData.length > 40000) {
+                    console.warn('Image still large, reducing further');
+                    canvas.width = width * 0.6;
+                    canvas.height = height * 0.6;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.2));
+                } else {
+                    resolve(compressedData);
+                }
+            };
+        });
+    };
+
+    const handleImageChange = async (e) => {
         const file = e.target.files[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
@@ -35,9 +81,18 @@ const AddAssetModal = ({ isOpen, onClose }) => {
             }
 
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result);
-                setFormData({ ...formData, image: reader.result });
+            reader.onloadend = async () => {
+                setIsCompressing(true);
+                const base64 = reader.result;
+                const compressed = await compressImage(base64);
+                if (compressed.length > 48000) {
+                    alert('Maaf, imej ini terlalu kompleks untuk disimpan dalam database. Sila gunakan imej lain.');
+                    setIsCompressing(false);
+                    return;
+                }
+                setImagePreview(compressed);
+                setFormData({ ...formData, image: compressed });
+                setIsCompressing(false);
             };
             reader.readAsDataURL(file);
         }
@@ -45,7 +100,7 @@ const AddAssetModal = ({ isOpen, onClose }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.name || !formData.value) return;
+        if (!formData.name || !formData.value || isCompressing) return;
 
         setIsSaving(true);
         const newAssetId = crypto.randomUUID();
@@ -205,22 +260,33 @@ const AddAssetModal = ({ isOpen, onClose }) => {
                             {imagePreview ? (
                                 <div className="relative w-full h-40 rounded-xl overflow-hidden border-2 border-dashed border-amber-200">
                                     <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <Upload className="text-white" size={24} />
-                                    </div>
+                                    {isCompressing ? (
+                                        <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center gap-2">
+                                            <div className="w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+                                            <span className="text-xs font-bold text-amber-700">MAMPAT GAMBAR...</span>
+                                        </div>
+                                    ) : (
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <Upload className="text-white" size={24} />
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
-                                <div className="w-full h-40 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-amber-300 hover:text-amber-400 transition-all bg-gray-50">
-                                    <Upload size={32} className="mb-2" />
-                                    <span className="text-xs font-medium uppercase tracking-wider">Muat Naik Gambar</span>
-                                    <span className="text-[10px] text-gray-400 mt-1">(Maks 5MB)</span>
+                                <div className="w-full h-44 rounded-2xl border-2 border-dashed border-gray-100 bg-gray-50 flex flex-col items-center justify-center gap-3 transition-all hover:bg-gray-100/50 hover:border-amber-200">
+                                    <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-400 group-hover:text-amber-500 transition-all">
+                                        <Upload size={24} />
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-sm font-semibold text-gray-600">Klik untuk muat naik gambar</p>
+                                        <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-tighter">HAD 5MB • OPTIMASI OTOMATIK</p>
+                                    </div>
                                 </div>
                             )}
                             <input
-                                type="file"
                                 ref={fileInputRef}
-                                onChange={handleImageChange}
+                                type="file"
                                 accept="image/*"
+                                onChange={handleImageChange}
                                 className="hidden"
                             />
                         </div>

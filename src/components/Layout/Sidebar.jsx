@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Home, Folder, PieChart, Menu, X, Settings, LogOut } from 'lucide-react';
+import logo3Ramd from '../../assets/logo-3ramd.png';
 
 const Sidebar = ({ isOpen, toggleSidebar, currentView, setCurrentView }) => {
     const menuItems = [
@@ -45,7 +46,7 @@ const Sidebar = ({ isOpen, toggleSidebar, currentView, setCurrentView }) => {
                     <div className="flex items-center justify-between mb-10">
                         <div className="flex flex-col items-center gap-3 w-full">
                             <div className="w-24 h-24 drop-shadow-md transition-transform hover:scale-105 duration-300">
-                                <img src="/logo-3ramd.png" alt="3 RAMD Logo" className="w-full h-full object-contain" />
+                                <img src={logo3Ramd} alt="3 RAMD Logo" className="w-full h-full object-contain" />
                             </div>
                             <div className="text-center">
                                 <span className="text-xl font-black text-gray-900 tracking-tighter uppercase leading-none">

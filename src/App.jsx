@@ -7,6 +7,7 @@ import AddAssetModal from './components/Assets/AddAssetModal';
 import SummaryCards from './components/Dashboard/SummaryCards';
 import AssetDetailModal from './components/Assets/AssetDetailModal';
 import SettingsModal from './components/Assets/SettingsModal';
+import logo3Ramd from './assets/logo-3ramd.png';
 import './index.css';
 
 function DashboardContent() {
@@ -33,7 +34,7 @@ function DashboardContent() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-xl shadow-amber-100 ring-4 ring-amber-50 p-1">
-            <img src="/logo-3ramd.png" alt="3 RAMD Logo" className="w-full h-full object-contain" />
+            <img src={logo3Ramd} alt="3 RAMD Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <h1 className="text-3xl font-black text-gray-900 tracking-tighter leading-none">
