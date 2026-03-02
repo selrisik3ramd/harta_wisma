@@ -22,7 +22,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
             <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100">
                 <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-indigo-100 text-indigo-600 rounded-xl">
+                        <div className="p-2 bg-amber-100 text-amber-600 rounded-xl">
                             <Globe size={20} />
                         </div>
                         <h2 className="text-xl font-black text-gray-900 tracking-tight">DATA SETTINGS</h2>
@@ -41,7 +41,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
                             placeholder="https://script.google.com/macros/s/.../exec"
-                            className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-indigo-600 focus:bg-white rounded-2xl transition-all outline-none font-medium text-gray-700 min-h-[120px] resize-none"
+                            className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-amber-600 focus:bg-white rounded-2xl transition-all outline-none font-medium text-gray-700 min-h-[120px] resize-none"
                         />
                         <p className="text-[11px] font-medium text-gray-500 leading-relaxed">
                             Paste the Web App URL from your deployed Google Apps Script. This URL allows the app to store data in Google Sheets and images in Google Drive.
@@ -69,7 +69,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
                     </button>
                     <button
                         onClick={handleSave}
-                        className="flex-1 px-6 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 group"
+                        className="flex-1 px-6 py-4 bg-amber-600 hover:bg-amber-700 text-white font-black rounded-2xl transition-all shadow-lg shadow-amber-100 flex items-center justify-center gap-2 group"
                     >
                         <Save size={18} className="group-hover:scale-110 transition-transform" />
                         SAVE SETTINGS

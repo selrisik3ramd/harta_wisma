@@ -33,25 +33,69 @@ const AssetContainer = () => {
     const exportToCSV = () => {
         if (assets.length === 0) return;
 
-        const headers = ['Nama Aset', 'Jenis', 'Lokasi', 'Kuantiti', 'Tarikh', 'Nilai Seunit (RM)', 'Jumlah (RM)'];
-        const rows = filteredAssets.map(asset => [
-            asset.name,
-            getAssetTypeLabel(asset.type),
-            asset.location || '-',
-            asset.quantity || 1,
-            formatDate(asset.date),
-            asset.value || 0,
-            calculateTotalValue(asset.value, asset.quantity)
-        ]);
+        // Group assets by category/type
+        const assetsByCategory = filteredAssets.reduce((acc, asset) => {
+            const category = asset.type || 'other';
+            if (!acc[category]) {
+                acc[category] = [];
+            }
+            acc[category].push(asset);
+            return acc;
+        }, {});
 
-        const csvContent = "data:text/csv;charset=utf-8,"
-            + headers.join(",") + "\n"
-            + rows.map(e => e.join(",")).join("\n");
+        // Build CSV content with category grouping
+        let csvContent = "data:text/csv;charset=utf-8,";
+
+        // Add header
+        const headers = ['Nama Aset', 'Jenis', 'Lokasi', 'Kuantiti', 'Tarikh', 'Nilai Seunit (RM)', 'Jumlah (RM)'];
+        csvContent += headers.join(",") + "\n";
+
+        // Add assets grouped by category
+        let grandTotalUnits = 0;
+        let grandTotalValue = 0;
+
+        Object.keys(assetsByCategory).forEach((category, index) => {
+            const categoryAssets = assetsByCategory[category];
+            const categoryLabel = getAssetTypeLabel(category);
+
+            // Add category header
+            csvContent += `\n"=== KATEGORI: ${categoryLabel.toUpperCase()} ==="\n`;
+
+            // Add assets in this category
+            categoryAssets.forEach(asset => {
+                const row = [
+                    `"${asset.name}"`,
+                    `"${getAssetTypeLabel(asset.type)}"`,
+                    `"${asset.location || '-'}"`,
+                    asset.quantity || 1,
+                    `"${formatDate(asset.date)}"`,
+                    asset.value || 0,
+                    calculateTotalValue(asset.value, asset.quantity)
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+
+            // Calculate category totals
+            const categoryTotalUnits = categoryAssets.reduce((sum, a) => sum + (parseInt(a.quantity) || 1), 0);
+            const categoryTotalValue = categoryAssets.reduce((sum, a) => sum + calculateTotalValue(a.value, a.quantity), 0);
+
+            grandTotalUnits += categoryTotalUnits;
+            grandTotalValue += categoryTotalValue;
+
+            // Add category summary
+            csvContent += `"SUBTOTAL ${categoryLabel.toUpperCase()}","","","${categoryTotalUnits}","","","${categoryTotalValue.toFixed(2)}"\n`;
+        });
+
+        // Add grand total
+        csvContent += `\n"=== JUMLAH KESELURUHAN ==="\n`;
+        csvContent += `"TOTAL SEMUA KATEGORI","","","${grandTotalUnits}","","","${grandTotalValue.toFixed(2)}"\n`;
+        csvContent += `"Jumlah Jenis Aset","${Object.keys(assetsByCategory).length}"\n`;
+        csvContent += `"Tarikh Eksport","${new Date().toLocaleDateString('ms-MY')}"\n`;
 
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `Inventori_Harta_Wisma_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute("download", `Inventori_Harta_Wisma_Mengikut_Kategori_${new Date().toISOString().split('T')[0]}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -60,12 +104,12 @@ const AssetContainer = () => {
     if (assets.length === 0) {
         return (
             <div className="bg-white rounded-3xl p-16 text-center border-2 border-dashed border-gray-100 shadow-sm">
-                <div className="w-20 h-20 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-indigo-500 rotate-3">
+                <div className="w-20 h-20 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-amber-500 rotate-3">
                     <Layers size={40} />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Pangkalan Data Kosong</h3>
                 <p className="text-gray-500 max-w-xs mx-auto text-sm leading-relaxed">
-                    Sistem sedia untuk input. Mula membina rekod aset Wisma anda dengan menekan butang <span className="font-bold text-indigo-600">Tambah Aset Baru</span>.
+                    Sistem sedia untuk input. Mula membina rekod aset Wisma anda dengan menekan butang <span className="font-bold text-amber-600">Tambah Aset Baru</span>.
                 </p>
                 <div className="mt-8 flex justify-center gap-2">
                     <span className="px-3 py-1 bg-gray-100 text-gray-500 text-[10px] font-bold rounded-full uppercase tracking-widest">Version 3.0 Stable</span>
@@ -75,11 +119,11 @@ const AssetContainer = () => {
     }
 
     return (
-        <div className="bg-white rounded-2xl shadow-xl shadow-indigo-100/50 border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-gradient-to-r from-indigo-50/50 to-white">
+        <div className="bg-white rounded-2xl shadow-xl shadow-amber-100/50 border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-gradient-to-r from-amber-50/50 to-white">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-6 flex-1">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+                        <div className="w-10 h-10 bg-amber-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-amber-200">
                             <Layers size={20} />
                         </div>
                         <div>
@@ -91,11 +135,11 @@ const AssetContainer = () => {
                         </div>
                     </div>
                     <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400" size={18} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400" size={18} />
                         <input
                             type="text"
                             placeholder="Cari nama, jenis atau lokasi aset..."
-                            className="w-full pl-12 pr-4 py-3 bg-white border-2 border-indigo-50 rounded-2xl text-sm focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-sm"
+                            className="w-full pl-12 pr-4 py-3 bg-white border-2 border-amber-50 rounded-2xl text-sm focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all shadow-sm"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -104,14 +148,14 @@ const AssetContainer = () => {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={exportToCSV}
-                        className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-all shadow-sm"
+                        className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:text-amber-600 transition-all shadow-sm"
                     >
                         EKSPORT CSV
                     </button>
                     <div className="flex items-center gap-3 bg-gray-50 p-1.5 rounded-xl border border-gray-100">
                         <span className="text-xs font-bold text-gray-500 px-2 uppercase tracking-tight">Susunan:</span>
                         <select
-                            className="text-xs font-bold border-none bg-white rounded-lg px-3 py-2 focus:ring-0 outline-none shadow-sm text-indigo-700 cursor-pointer"
+                            className="text-xs font-bold border-none bg-white rounded-lg px-3 py-2 focus:ring-0 outline-none shadow-sm text-amber-700 cursor-pointer"
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
                         >
@@ -129,7 +173,7 @@ const AssetContainer = () => {
                         <tr className="bg-gray-50 text-left">
                             <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Gambar</th>
                             <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Maklumat Aset</th>
-                            <th className="px-6 py-4 text-[10px] font-black text-indigo-500 uppercase tracking-widest border-b border-gray-100 bg-indigo-50/30">Lokasi / Penempatan</th>
+                            <th className="px-6 py-4 text-[10px] font-black text-amber-500 uppercase tracking-widest border-b border-gray-100 bg-amber-50/30">Lokasi / Penempatan</th>
                             <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center">Unit</th>
                             <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 text-right">Harga Seunit</th>
                             <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 text-right">Jumlah Besar</th>
@@ -138,7 +182,7 @@ const AssetContainer = () => {
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                         {filteredAssets.map((asset) => (
-                            <tr key={asset.id} className="hover:bg-indigo-50/30 transition-all group">
+                            <tr key={asset.id} className="hover:bg-amber-50/30 transition-all group">
                                 <td className="px-6 py-5">
                                     {asset.image ? (
                                         <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-md group-hover:scale-105 transition-transform">
@@ -152,7 +196,7 @@ const AssetContainer = () => {
                                 </td>
                                 <td className="px-6 py-5">
                                     <div className="flex flex-col">
-                                        <span className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{asset.name}</span>
+                                        <span className="text-sm font-bold text-gray-900 group-hover:text-amber-600 transition-colors">{asset.name}</span>
                                         <div className="flex items-center gap-2 mt-1">
                                             <span className="px-2 py-0.5 bg-gray-100 text-[10px] font-bold text-gray-500 rounded uppercase tracking-tighter">
                                                 {getAssetTypeLabel(asset.type)}
@@ -163,10 +207,10 @@ const AssetContainer = () => {
                                         </div>
                                     </div>
                                 </td>
-                                <td className="px-6 py-5 bg-indigo-50/10 border-x border-indigo-50/50">
+                                <td className="px-6 py-5 bg-amber-50/10 border-x border-amber-50/50">
                                     <div className="flex flex-col">
-                                        <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Status Lokasi:</span>
-                                        <span className="text-sm font-black text-indigo-900 bg-indigo-100/50 px-2 py-1 rounded-lg inline-block w-fit">
+                                        <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest mb-1">Status Lokasi:</span>
+                                        <span className="text-sm font-black text-amber-900 bg-amber-100/50 px-2 py-1 rounded-lg inline-block w-fit">
                                             {asset.location ? asset.location.toUpperCase() : 'BELUM DITETAPKAN'}
                                         </span>
                                     </div>
@@ -180,7 +224,7 @@ const AssetContainer = () => {
                                     {formatCurrency(asset.value)}
                                 </td>
                                 <td className="px-6 py-5 text-right">
-                                    <span className="text-sm font-black text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100 tabular-nums shadow-sm">
+                                    <span className="text-sm font-black text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-100 tabular-nums shadow-sm">
                                         {formatCurrency(calculateTotalValue(asset.value, asset.quantity))}
                                     </span>
                                 </td>
@@ -188,7 +232,7 @@ const AssetContainer = () => {
                                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button
                                             onClick={() => setEditingAsset(asset)}
-                                            className="p-2.5 text-indigo-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm rounded-xl transition-all"
+                                            className="p-2.5 text-amber-400 hover:text-amber-600 hover:bg-white hover:shadow-sm rounded-xl transition-all"
                                             title="Kemaskini"
                                         >
                                             <Edit2 size={18} />
@@ -209,7 +253,7 @@ const AssetContainer = () => {
                         <tr>
                             <td className="px-6 py-6" colSpan="3">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-1.5 h-8 bg-indigo-500 rounded-full"></div>
+                                    <div className="w-1.5 h-8 bg-amber-500 rounded-full"></div>
                                     <div>
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-0.5">Ringkasan Taburan</p>
                                         <p className="text-sm font-bold uppercase">Jumlah Rekod Keseluruhan</p>
@@ -218,7 +262,7 @@ const AssetContainer = () => {
                             </td>
                             <td className="px-6 py-6 text-center">
                                 <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Total Unit</p>
-                                <p className="text-xl font-black text-indigo-400">{filteredAssets.reduce((sum, a) => sum + (parseInt(a.quantity) || 1), 0)}</p>
+                                <p className="text-xl font-black text-amber-400">{filteredAssets.reduce((sum, a) => sum + (parseInt(a.quantity) || 1), 0)}</p>
                             </td>
                             <td className="px-6 py-6" colSpan="1"></td>
                             <td className="px-6 py-6 text-right">

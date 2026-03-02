@@ -32,12 +32,12 @@ function DashboardContent() {
     <>
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-100 ring-4 ring-indigo-50">
-            <Layers size={28} />
+          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-xl shadow-amber-100 ring-4 ring-amber-50 p-1">
+            <img src="/logo-3ramd.png" alt="3 RAMD Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <h1 className="text-3xl font-black text-gray-900 tracking-tighter leading-none">
-              WISMA PERWIRA <span className="text-indigo-600 text-lg block sm:inline sm:ml-2">BN 3 RAMD</span>
+              WISMA PERWIRA <span className="text-amber-600 text-lg block sm:inline sm:ml-2">BN 3 RAMD</span>
             </h1>
             <div className="flex items-center gap-2 mt-2">
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">PENGURUSAN INVENTORI ASET</span>
@@ -53,7 +53,7 @@ function DashboardContent() {
           <button
             onClick={() => refreshAssets()}
             disabled={loading}
-            className="p-4 bg-white border-2 border-gray-100 hover:border-indigo-100 text-gray-400 hover:text-indigo-600 rounded-2xl transition-all shadow-sm hover:shadow-indigo-50 flex items-center justify-center disabled:opacity-50"
+            className="p-4 bg-white border-2 border-gray-100 hover:border-amber-100 text-gray-400 hover:text-amber-600 rounded-2xl transition-all shadow-sm hover:shadow-amber-50 flex items-center justify-center disabled:opacity-50"
             title="Refresh Data"
           >
             <RefreshCw size={24} className={loading ? "animate-spin" : ""} />
@@ -61,7 +61,7 @@ function DashboardContent() {
 
           <button
             onClick={() => setIsSettingsOpen(true)}
-            className="p-4 bg-white border-2 border-gray-100 hover:border-indigo-100 text-gray-400 hover:text-indigo-600 rounded-2xl transition-all shadow-sm hover:shadow-indigo-50 flex items-center justify-center"
+            className="p-4 bg-white border-2 border-gray-100 hover:border-amber-100 text-gray-400 hover:text-amber-600 rounded-2xl transition-all shadow-sm hover:shadow-amber-50 flex items-center justify-center"
             title="Database Settings"
           >
             <Settings size={24} />
@@ -69,7 +69,7 @@ function DashboardContent() {
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="group flex items-center justify-center gap-3 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl transition-all shadow-xl shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98]"
+            className="group flex items-center justify-center gap-3 px-8 py-4 bg-amber-600 hover:bg-amber-700 text-white font-black rounded-2xl transition-all shadow-xl shadow-amber-200 hover:scale-[1.02] active:scale-[0.98]"
           >
             <div className="bg-white/20 p-1 rounded-lg group-hover:rotate-90 transition-transform">
               <Plus size={20} className="text-white" />
@@ -83,8 +83,8 @@ function DashboardContent() {
         {loading && (
           <div className="absolute inset-x-0 -top-4 z-10 flex justify-center">
             <div className="bg-white px-4 py-2 rounded-full shadow-lg border border-gray-100 flex items-center gap-2 animate-bounce">
-              <div className="w-2 h-2 bg-indigo-600 rounded-full animate-ping"></div>
-              <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Updating Database...</span>
+              <div className="w-2 h-2 bg-amber-600 rounded-full animate-ping"></div>
+              <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Updating Database...</span>
             </div>
           </div>
         )}
@@ -115,11 +115,26 @@ function DashboardContent() {
   );
 }
 
+import AssetsDetailedView from './components/Assets/AssetsDetailedView';
+
 function App() {
+  const [currentView, setCurrentView] = useState('dashboard');
+
+  const renderView = () => {
+    switch (currentView) {
+      case 'assets':
+        return <AssetsDetailedView />;
+      case 'reports':
+        return <div className="p-20 text-center font-black text-gray-300">MODUL LAPORAN AKAN DATANG</div>;
+      default:
+        return <DashboardContent />;
+    }
+  };
+
   return (
     <AssetProvider>
-      <MainLayout>
-        <DashboardContent />
+      <MainLayout currentView={currentView} setCurrentView={setCurrentView}>
+        {renderView()}
       </MainLayout>
     </AssetProvider>
   );

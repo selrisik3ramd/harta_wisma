@@ -31,9 +31,9 @@ const SummaryCards = () => {
             title: 'JUMLAH UNIT FIZIKAL',
             value: totalUnits.toLocaleString(),
             icon: Layers,
-            color: 'bg-indigo-600',
+            color: 'bg-amber-600',
             trend: 'KUANTITI SEMASA',
-            trendColor: 'text-indigo-600',
+            trendColor: 'text-amber-600',
             subValue: 'Semua Kategori'
         },
         {
@@ -61,7 +61,7 @@ const SummaryCards = () => {
             {cards.map((card, index) => {
                 const Icon = card.icon;
                 return (
-                    <div key={index} className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-indigo-50 transition-all group border-b-4 border-b-gray-50 hover:border-b-indigo-500">
+                    <div key={index} className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-amber-50 transition-all group border-b-4 border-b-gray-50 hover:border-b-amber-500">
                         <div className="flex items-start justify-between mb-4">
                             <div className={`p-3 rounded-2xl ${card.color} bg-opacity-10 text-white group-hover:bg-opacity-100 transition-all`}>
                                 <Icon size={24} className={`${card.color.replace('bg-', 'text-')} group-hover:text-white transition-colors`} />

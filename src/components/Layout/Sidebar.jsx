@@ -1,14 +1,19 @@
 import { useState } from 'react';
 import { Home, Folder, PieChart, Menu, X, Settings, LogOut } from 'lucide-react';
 
-const Sidebar = ({ isOpen, toggleSidebar }) => {
+const Sidebar = ({ isOpen, toggleSidebar, currentView, setCurrentView }) => {
     const menuItems = [
         { icon: Home, label: 'Papan Pemuka', id: 'dashboard' },
         { icon: Folder, label: 'Aset', id: 'assets' },
         { icon: PieChart, label: 'Laporan', id: 'reports' },
     ];
 
-    const [activeItem, setActiveItem] = useState('dashboard');
+    const handleItemClick = (id) => {
+        setCurrentView(id);
+        if (window.innerWidth < 1024) {
+            toggleSidebar();
+        }
+    };
 
     return (
         <>
@@ -36,15 +41,17 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 </div>
 
                 <div className="h-full flex flex-col p-6 relative z-10">
-                    {/* Logo */}
+                    {/* Logo Section */}
                     <div className="flex items-center justify-between mb-10">
-                        <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-100 shadow-sm">
-                                <img src="/backdrop.jpg" alt="3 RAMD Logo" className="w-full h-full object-cover" />
+                        <div className="flex flex-col items-center gap-3 w-full">
+                            <div className="w-24 h-24 drop-shadow-md transition-transform hover:scale-105 duration-300">
+                                <img src="/logo-3ramd.png" alt="3 RAMD Logo" className="w-full h-full object-contain" />
                             </div>
-                            <span className="text-xl font-bold text-gray-900 tracking-tight">
-                                WISMA PERWIRA
-                            </span>
+                            <div className="text-center">
+                                <span className="text-xl font-black text-gray-900 tracking-tighter uppercase leading-none">
+                                    WISMA<br /><span className="text-amber-600">PERWIRA</span>
+                                </span>
+                            </div>
                         </div>
                         <button
                             onClick={toggleSidebar}
@@ -58,20 +65,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                     <nav className="flex-1 space-y-1">
                         {menuItems.map((item) => {
                             const Icon = item.icon;
-                            const isActive = activeItem === item.id;
+                            const isActive = currentView === item.id;
 
                             return (
                                 <button
                                     key={item.id}
-                                    onClick={() => setActiveItem(item.id)}
+                                    onClick={() => handleItemClick(item.id)}
                                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${isActive
-                                        ? 'bg-indigo-50 text-indigo-700 font-medium'
+                                        ? 'bg-amber-50 text-amber-700 font-medium'
                                         : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                                         }`}
                                 >
                                     <Icon
                                         size={20}
-                                        className={`transition-colors ${isActive ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-900'
+                                        className={`transition-colors ${isActive ? 'text-amber-600' : 'text-gray-400 group-hover:text-gray-900'
                                             }`}
                                     />
                                     {item.label}

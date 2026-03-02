@@ -19,6 +19,9 @@ const AddAssetModal = ({ isOpen, onClose }) => {
         date: new Date().toISOString().split('T')[0],
         image: null,
         location: '',
+        noSiri: '',
+        kewPa: '',
+        kewPa3: '',
     });
 
     if (!isOpen) return null;
@@ -26,8 +29,8 @@ const AddAssetModal = ({ isOpen, onClose }) => {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 1024 * 1024) {
-                alert('Saiz gambar terlalu besar. Sila pilih gambar bawah 1MB.');
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Saiz gambar terlalu besar. Sila pilih gambar bawah 5MB.');
                 return;
             }
 
@@ -66,6 +69,9 @@ const AddAssetModal = ({ isOpen, onClose }) => {
             date: new Date().toISOString().split('T')[0],
             image: null,
             location: '',
+            noSiri: '',
+            kewPa: '',
+            kewPa3: '',
         });
         setImagePreview(null);
     };
@@ -155,7 +161,7 @@ const AddAssetModal = ({ isOpen, onClose }) => {
                         <div className="space-y-3">
                             <button
                                 onClick={handlePrint}
-                                className="w-full flex items-center justify-center gap-2 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+                                className="w-full flex items-center justify-center gap-2 py-4 bg-amber-600 text-white font-black rounded-2xl hover:bg-amber-700 transition-all shadow-lg shadow-amber-100"
                             >
                                 <Printer size={20} />
                                 CETAK KOD QR
@@ -197,17 +203,17 @@ const AddAssetModal = ({ isOpen, onClose }) => {
                             className="relative group cursor-pointer"
                         >
                             {imagePreview ? (
-                                <div className="relative w-full h-40 rounded-xl overflow-hidden border-2 border-dashed border-indigo-200">
+                                <div className="relative w-full h-40 rounded-xl overflow-hidden border-2 border-dashed border-amber-200">
                                     <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                         <Upload className="text-white" size={24} />
                                     </div>
                                 </div>
                             ) : (
-                                <div className="w-full h-40 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-indigo-300 hover:text-indigo-400 transition-all bg-gray-50">
+                                <div className="w-full h-40 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-amber-300 hover:text-amber-400 transition-all bg-gray-50">
                                     <Upload size={32} className="mb-2" />
                                     <span className="text-xs font-medium uppercase tracking-wider">Muat Naik Gambar</span>
-                                    <span className="text-[10px] text-gray-400 mt-1">(Maks 1MB)</span>
+                                    <span className="text-[10px] text-gray-400 mt-1">(Maks 5MB)</span>
                                 </div>
                             )}
                             <input
@@ -227,7 +233,7 @@ const AddAssetModal = ({ isOpen, onClose }) => {
                         <input
                             type="text"
                             placeholder="cth., Televisyen 55 inci"
-                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             required
@@ -241,7 +247,7 @@ const AddAssetModal = ({ isOpen, onClose }) => {
                         <input
                             type="text"
                             placeholder="cth., Bilik Mesyuarat / Stor / Pejabat"
-                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all"
                             value={formData.location}
                             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                             required
@@ -249,13 +255,52 @@ const AddAssetModal = ({ isOpen, onClose }) => {
                     </div>
 
 
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            No. Siri / Siri Aset
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="cth., SN12345678"
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all"
+                            value={formData.noSiri}
+                            onChange={(e) => setFormData({ ...formData, noSiri: e.target.value })}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            No. KEW.PA - 2 (Aset Alih)
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="cth., KEW.PA-2-100-1/1"
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all"
+                            value={formData.kewPa}
+                            onChange={(e) => setFormData({ ...formData, kewPa: e.target.value })}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            No. KEW.PA - 3 (Inventori)
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="cth., KEW.PA-3-100-1/1"
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all"
+                            value={formData.kewPa3}
+                            onChange={(e) => setFormData({ ...formData, kewPa3: e.target.value })}
+                        />
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                         <div className="col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Jenis
                             </label>
                             <select
-                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all bg-white"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all bg-white"
                                 value={formData.type}
                                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                             >
@@ -273,7 +318,7 @@ const AddAssetModal = ({ isOpen, onClose }) => {
                             <input
                                 type="number"
                                 min="1"
-                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all"
                                 value={formData.quantity}
                                 onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                                 required
@@ -289,7 +334,7 @@ const AddAssetModal = ({ isOpen, onClose }) => {
                                 <input
                                     type="number"
                                     placeholder="0.00"
-                                    className="w-full pl-12 pr-4 py-2 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                                    className="w-full pl-12 pr-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all"
                                     value={formData.value}
                                     onChange={(e) => setFormData({ ...formData, value: e.target.value })}
                                     required
@@ -306,7 +351,7 @@ const AddAssetModal = ({ isOpen, onClose }) => {
                         </label>
                         <input
                             type="date"
-                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all"
                             value={formData.date}
                             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                         />
@@ -323,7 +368,7 @@ const AddAssetModal = ({ isOpen, onClose }) => {
                         <button
                             type="submit"
                             disabled={isSaving}
-                            className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 disabled:opacity-50"
+                            className="flex-1 px-4 py-2.5 rounded-xl bg-amber-600 text-white font-medium hover:bg-amber-700 transition-colors shadow-lg shadow-amber-200 disabled:opacity-50"
                         >
                             {isSaving ? 'Menyimpan...' : 'Simpan Aset'}
                         </button>

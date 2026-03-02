@@ -16,7 +16,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-md">
             <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-300 overflow-hidden">
-                <div className="relative h-48 bg-indigo-600">
+                <div className="relative h-48 bg-amber-600">
                     {asset.image ? (
                         <img src={asset.image} alt={asset.name} className="w-full h-full object-cover opacity-80" />
                     ) : (
@@ -33,7 +33,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                     <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
                         <div className="flex items-center gap-2 mb-1">
                             {getIcon(asset.type)}
-                            <span className="text-indigo-300 text-[10px] font-black uppercase tracking-widest">
+                            <span className="text-amber-300 text-[10px] font-black uppercase tracking-widest">
                                 {getAssetTypeLabel(asset.type)}
                             </span>
                         </div>
@@ -48,7 +48,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                                 <MapPin size={16} />
                                 <span className="text-[10px] font-black uppercase tracking-wider">Lokasi</span>
                             </div>
-                            <p className="text-sm font-bold text-gray-900 border-l-4 border-indigo-500 pl-3">
+                            <p className="text-sm font-bold text-gray-900 border-l-4 border-amber-500 pl-3">
                                 {asset.location ? asset.location.toUpperCase() : 'BELUM DITETAPKAN'}
                             </p>
                         </div>
@@ -63,13 +63,43 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                         </div>
                     </div>
 
+                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                        <div className="flex items-center gap-2 text-gray-400 mb-2">
+                            <Layers size={16} />
+                            <span className="text-[10px] font-black uppercase tracking-wider">No. Siri / Siri Aset</span>
+                        </div>
+                        <p className="text-sm font-bold text-gray-900 border-l-4 border-amber-500 pl-3">
+                            {asset.noSiri || 'TIADA'}
+                        </p>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                        <div className="flex items-center gap-2 text-gray-400 mb-2">
+                            <Package size={16} />
+                            <span className="text-[10px] font-black uppercase tracking-wider">No. KEW.PA - 2 (Aset Alih)</span>
+                        </div>
+                        <p className="text-sm font-bold text-gray-900 border-l-4 border-orange-500 pl-3">
+                            {asset.kewPa || 'TIADA'}
+                        </p>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                        <div className="flex items-center gap-2 text-gray-400 mb-2">
+                            <Utensils size={16} />
+                            <span className="text-[10px] font-black uppercase tracking-wider">No. KEW.PA - 3 (Inventori)</span>
+                        </div>
+                        <p className="text-sm font-bold text-gray-900 border-l-4 border-blue-500 pl-3">
+                            {asset.kewPa3 || 'TIADA'}
+                        </p>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-6">
                         <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
                             <div className="flex items-center gap-2 text-gray-400 mb-2">
                                 <DollarSign size={16} />
                                 <span className="text-[10px] font-black uppercase tracking-wider">Harga Seunit</span>
                             </div>
-                            <p className="text-sm font-bold text-indigo-600 border-l-4 border-indigo-500 pl-3">
+                            <p className="text-sm font-bold text-amber-600 border-l-4 border-amber-500 pl-3">
                                 {formatCurrency(asset.value)}
                             </p>
                         </div>
@@ -84,15 +114,15 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                         </div>
                     </div>
 
-                    <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
+                    <div className="bg-amber-50 p-6 rounded-2xl border border-amber-100">
                         <div className="flex items-center justify-between">
                             <div>
-                                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Jumlah Nilai Keseluruhan</span>
-                                <p className="text-2xl font-black text-indigo-700">
+                                <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">Jumlah Nilai Keseluruhan</span>
+                                <p className="text-2xl font-black text-amber-700">
                                     {formatCurrency(calculateTotalValue(asset.value, asset.quantity))}
                                 </p>
                             </div>
-                            <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-600">
+                            <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-amber-600">
                                 <DollarSign size={24} />
                             </div>
                         </div>
