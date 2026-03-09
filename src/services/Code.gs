@@ -37,7 +37,7 @@ function setupHeaders() {
     "location",    // G
     "image",       // H
     "noSiri",      // I
-    "kewPa",       // J
+    "kewPa2",      // J
     "kewPa3",      // K
     "createdAt"    // L
   ];

@@ -25,42 +25,42 @@ export const fetchAssets = async () => {
         const assetsArray = Array.isArray(data) ? data : [];
         console.log(`DIAGNOSTIK: Jumlah aset yang diterima dari server: ${assetsArray.length}`);
 
-        // Transform data to ensure standard field names
+        // Transform data to ensure standard field names and safe defaults
         const normalizedAssets = assetsArray.map(asset => {
             const normalized = { ...asset };
 
-            // Map common translations/variations
-            if (asset.imej && !asset.image) normalized.image = asset.imej;
-            if (asset.nama && !asset.name) normalized.name = asset.nama;
-            if (asset.jenis && !asset.type) normalized.type = asset.jenis;
-            if (asset.kuantiti && !asset.quantity) normalized.quantity = asset.kuantiti;
-            if (asset.nilai && !asset.value) normalized.value = asset.nilai;
-            if (asset.tarikh && !asset.date) normalized.date = asset.tarikh;
-            if (asset.lokasi && !asset.location) normalized.location = asset.lokasi;
-            if (asset.nosiri && !asset.noSiri) normalized.noSiri = asset.nosiri;
-            if (asset.kewpa && !asset.kewPa) normalized.kewPa = asset.kewpa;
-            if (asset.kewpa3 && !asset.kewPa3) normalized.kewPa3 = asset.kewpa3;
+            // Map common translations/variations safely
+            // Ensure no undefined or null objects crash the React rendering engine
+            normalized.name = String(asset.nama || asset.name || 'TANPA NAMA');
+            normalized.type = String(asset.jenis || asset.type || 'other');
+            normalized.quantity = parseInt(asset.kuantiti || asset.quantity) || 1;
+            normalized.value = parseFloat(asset.nilai || asset.value) || 0;
+            normalized.date = String(asset.tarikh || asset.date || new Date().toISOString().split('T')[0]);
+            normalized.location = String(asset.lokasi || asset.location || '');
+
+            // Map serial IDs safely as strings
+            normalized.noSiri = String(asset.nosiri || asset.noSiri || '');
+            normalized.kewPa = String(asset.kewpa || asset.kewPa || asset.kewPa2 || '');
+            normalized.kewPa3 = String(asset.kewpa3 || asset.kewPa3 || '');
+
+            // CRITICAL FIX: The image field must be a valid base64 image string or empty.
+            // If the backend accidentally maps 'createdAt' (like '2026-03-02T13...') to 'image', this throws it out.
+            let potentialImage = asset.imej || asset.image || '';
+            if (typeof potentialImage === 'string' && potentialImage.startsWith('data:image')) {
+                normalized.image = potentialImage;
+            } else {
+                normalized.image = null; // Do not render invalid dates or strings as src
+            }
 
             return normalized;
         });
 
         if (normalizedAssets.length > 0) {
             const testAsset = normalizedAssets[0];
-            console.log('DIAGNOSTIK: Aset Pertama:', {
+            console.log('DIAGNOSTIK: Aset Pertama Selamat Diproses:', {
                 nama: testAsset.name,
-                ada_imej: !!testAsset.image,
-                panjang_imej: testAsset.image ? testAsset.image.length : 0,
-                jenis_data_imej: typeof testAsset.image
+                ada_imej: !!testAsset.image
             });
-
-            if (testAsset.image) {
-                console.log('DIAGNOSTIK: 50 aksara pertama imej:', testAsset.image.substring(0, 50));
-                if (!testAsset.image.startsWith('data:image')) {
-                    console.error('AMARAN: Data imej tidak bermula dengan "data:image". Paparan mungkin gagal.');
-                }
-            } else {
-                console.warn('DIAGNOSTIK: Tiada data imej dalam kunci "image" atau "imej"');
-            }
         }
 
         return normalizedAssets;
