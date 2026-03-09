@@ -7,6 +7,8 @@ import AddAssetModal from './components/Assets/AddAssetModal';
 import SummaryCards from './components/Dashboard/SummaryCards';
 import AssetDetailModal from './components/Assets/AssetDetailModal';
 import SettingsModal from './components/Assets/SettingsModal';
+import AssetsDetailedView from './components/Assets/AssetsDetailedView';
+import QRAssetView from './components/Assets/QRAssetView';
 import logo3Ramd from './assets/logo-3ramd.png';
 import './index.css';
 
@@ -15,19 +17,6 @@ function DashboardContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { assets, loading, refreshAssets } = useAssets();
   const [scannedAsset, setScannedAsset] = useState(null);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const assetId = params.get('assetId');
-    if (assetId && assets.length > 0) {
-      const asset = assets.find(a => a.id === assetId);
-      if (asset) {
-        setScannedAsset(asset);
-      }
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, [assets]);
 
   return (
     <>
@@ -116,10 +105,22 @@ function DashboardContent() {
   );
 }
 
-import AssetsDetailedView from './components/Assets/AssetsDetailedView';
-
-function App() {
+function MainApp() {
   const [currentView, setCurrentView] = useState('dashboard');
+  const [urlAssetId, setUrlAssetId] = useState(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const assetId = params.get('assetId');
+    if (assetId) {
+      setUrlAssetId(assetId);
+    }
+  }, []);
+
+  // If there's an assetId in URL, show standalone view
+  if (urlAssetId) {
+    return <QRAssetView assetId={urlAssetId} />;
+  }
 
   const renderView = () => {
     switch (currentView) {
@@ -133,10 +134,16 @@ function App() {
   };
 
   return (
+    <MainLayout currentView={currentView} setCurrentView={setCurrentView}>
+      {renderView()}
+    </MainLayout>
+  );
+}
+
+function App() {
+  return (
     <AssetProvider>
-      <MainLayout currentView={currentView} setCurrentView={setCurrentView}>
-        {renderView()}
-      </MainLayout>
+      <MainApp />
     </AssetProvider>
   );
 }

@@ -21,8 +21,8 @@ const AssetsDetailedView = () => {
         const currentYear = new Date().getFullYear();
         const yearsPassed = Math.max(0, currentYear - purchaseYear);
 
-        // Reducing balance: Value = Original * (0.95 ^ years)
-        const depreciatedValue = originalValue * Math.pow(0.95, yearsPassed);
+        // Reducing balance: Value = Original * (0.90 ^ years)
+        const depreciatedValue = originalValue * Math.pow(0.90, yearsPassed);
         return Math.max(0, depreciatedValue);
     };
 
@@ -66,7 +66,7 @@ const AssetsDetailedView = () => {
     });
 
     const exportToCSV = () => {
-        const headers = ['Nama Aset', 'Jenis', 'Lokasi', 'Kuantiti', 'Nilai Seunit (RM)', 'Nilai Semasa (Susut Nilai 5%)', 'Jumlah Asal (RM)', 'Jumlah Semasa (RM)', 'No. Siri', 'KEW.PA-2', 'KEW.PA-3', 'Tarikh'];
+        const headers = ['Nama Aset', 'Jenis', 'Lokasi', 'Kuantiti', 'Nilai Seunit (RM)', 'Nilai Semasa (Susut Nilai 10%)', 'Jumlah Asal (RM)', 'Jumlah Semasa (RM)', 'No. Siri', 'KEW.PA-2', 'KEW.PA-3', 'Tarikh'];
         const rows = filteredAssets.map(asset => {
             const currentValue = calculateDepreciation(asset.value, asset.date);
             return [
@@ -243,7 +243,7 @@ const AssetsDetailedView = () => {
                                 </th>
                                 <th className="px-6 py-5">
                                     <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right justify-end">
-                                        Susut Nilai (5%/Thn)
+                                        Susut Nilai (10%/Thn)
                                     </div>
                                 </th>
                                 <th className="px-6 py-5 text-right">

@@ -10,20 +10,60 @@ export const fetchAssets = async () => {
     if (!url || url.trim() === '') return [];
 
     try {
-        // Add cache busting to ensure we get fresh data from Google Sheets
         const separator = url.includes('?') ? '&' : '?';
         const response = await fetch(`${url}${separator}t=${Date.now()}`);
-        if (!response.ok) throw new Error('Network response was not ok');
+        if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
+
         const data = await response.json();
 
-        console.log('--- DIAGNOSTIK DATA ---');
-        console.log(`Jumlah aset diterima: ${data.length}`);
-        if (data.length > 0) {
-            console.log('Struktur Aset Pertama:', Object.keys(data[0]));
-            console.log('Imej Aset Pertama:', data[0].image ? 'Wujud (Base64)' : 'KOSONG');
+        console.log('--- DIAGNOSTIK DATA (VERSI 3.2) ---');
+        if (!data) {
+            console.error('DIAGNOSTIK: Data diterima adalah NULL/UNDEFINED');
+            return [];
         }
 
-        return Array.isArray(data) ? data : [];
+        const assetsArray = Array.isArray(data) ? data : [];
+        console.log(`DIAGNOSTIK: Jumlah aset yang diterima dari server: ${assetsArray.length}`);
+
+        // Transform data to ensure standard field names
+        const normalizedAssets = assetsArray.map(asset => {
+            const normalized = { ...asset };
+
+            // Map common translations/variations
+            if (asset.imej && !asset.image) normalized.image = asset.imej;
+            if (asset.nama && !asset.name) normalized.name = asset.nama;
+            if (asset.jenis && !asset.type) normalized.type = asset.jenis;
+            if (asset.kuantiti && !asset.quantity) normalized.quantity = asset.kuantiti;
+            if (asset.nilai && !asset.value) normalized.value = asset.nilai;
+            if (asset.tarikh && !asset.date) normalized.date = asset.tarikh;
+            if (asset.lokasi && !asset.location) normalized.location = asset.lokasi;
+            if (asset.nosiri && !asset.noSiri) normalized.noSiri = asset.nosiri;
+            if (asset.kewpa && !asset.kewPa) normalized.kewPa = asset.kewpa;
+            if (asset.kewpa3 && !asset.kewPa3) normalized.kewPa3 = asset.kewpa3;
+
+            return normalized;
+        });
+
+        if (normalizedAssets.length > 0) {
+            const testAsset = normalizedAssets[0];
+            console.log('DIAGNOSTIK: Aset Pertama:', {
+                nama: testAsset.name,
+                ada_imej: !!testAsset.image,
+                panjang_imej: testAsset.image ? testAsset.image.length : 0,
+                jenis_data_imej: typeof testAsset.image
+            });
+
+            if (testAsset.image) {
+                console.log('DIAGNOSTIK: 50 aksara pertama imej:', testAsset.image.substring(0, 50));
+                if (!testAsset.image.startsWith('data:image')) {
+                    console.error('AMARAN: Data imej tidak bermula dengan "data:image". Paparan mungkin gagal.');
+                }
+            } else {
+                console.warn('DIAGNOSTIK: Tiada data imej dalam kunci "image" atau "imej"');
+            }
+        }
+
+        return normalizedAssets;
     } catch (error) {
         console.error('Error fetching assets:', error);
         return [];
