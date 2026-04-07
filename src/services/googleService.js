@@ -16,52 +16,78 @@ export const fetchAssets = async () => {
 
         const data = await response.json();
 
-        console.log('--- DIAGNOSTIK DATA (VERSI 3.2) ---');
-        if (!data) {
-            console.error('DIAGNOSTIK: Data diterima adalah NULL/UNDEFINED');
-            return [];
+        console.log('--- DIAGNOSTIK DATA (VERSI 4.0) ---');
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            console.warn('DIAGNOSTIK: Data kosong atau format tidak sah', data);
+        } else {
+            console.log(`DIAGNOSTIK: Jumlah aset: ${data.length}`);
+            console.log('DIAGNOSTIK: Struktur Asset[0]:', Object.keys(data[0]));
+            console.log('DIAGNOSTIK: Data Asset[0]:', JSON.stringify(data[0]).substring(0, 200));
         }
 
         const assetsArray = Array.isArray(data) ? data : [];
-        console.log(`DIAGNOSTIK: Jumlah aset yang diterima dari server: ${assetsArray.length}`);
 
         // Transform data to ensure standard field names and safe defaults
-        const normalizedAssets = assetsArray.map(asset => {
-            const normalized = { ...asset };
+        const rawAssets = assetsArray.map(asset => {
+            const keys = Object.keys(asset);
+            const getVal = (term) => {
+                const k = keys.find(x => x.toLowerCase().trim() === term.toLowerCase());
+                return k ? asset[k] : null;
+            };
 
-            // Check if backend used Object.values and shifted the columns
-            // Meaning 'location' column got quantity (number), and 'quantity' got value (number)
-            const isShifted = typeof asset.location === 'number' || (!isNaN(parseFloat(asset.location)) && asset.location !== '');
+            const base64Img = keys.map(k => asset[k]).find(v => typeof v === 'string' && v.startsWith('data:image'));
 
-            if (isShifted) {
-                // Recover data from shifted columns
-                normalized.quantity = parseInt(asset.location) || 1;
-                normalized.value = parseFloat(asset.quantity) || 0;
-                normalized.date = String(asset.image || new Date().toISOString().split('T')[0]);
-                let potImg = asset.createdAt || '';
-                normalized.image = typeof potImg === 'string' && potImg.startsWith('data:image') ? potImg : null;
-                // Location did not exist in old records, the empty header column was actually a timestamp!
-                normalized.location = '-';
-            } else {
-                normalized.quantity = parseInt(asset.kuantiti || asset.quantity) || 1;
-                normalized.value = parseFloat(asset.nilai || asset.value || asset.harga) || 0;
-                normalized.date = String(asset.tarikh || asset.date || new Date().toISOString().split('T')[0]);
-                normalized.location = String(asset.lokasi || asset.location || '-');
-                let potImg = asset.imej || asset.image || '';
-                normalized.image = typeof potImg === 'string' && potImg.startsWith('data:image') ? potImg : null;
+            const normalized = {
+                id: String(getVal('id') || '').trim(),
+                name: String(getVal('name') || 'TANPA NAMA').trim(),
+                type: String(getVal('type') || 'other').toLowerCase().trim(),
+                location: String(getVal('location') || 'TIADA REKOD').trim(),
+                quantity: parseInt(getVal('quantity') || 1) || 1,
+                value: parseFloat(getVal('value') || 0) || 0,
+                date: String(getVal('date') || ''),
+                image: (typeof asset.image === 'string' && asset.image.startsWith('data:image')) ? asset.image : base64Img || null,
+                noSiri: String(getVal('noSiri') || '').trim(),
+                kewPa: String(getVal('kewPa') || '').trim(),
+                kewPa3: String(getVal('kewPa3') || '').trim(),
+                createdAt: String(getVal('createdAt') || '')
+            };
+
+            // Smart recovery for price (e.g. 437.58 from quantity column)
+            if ((normalized.value === 0 || normalized.value === 5000) && (normalized.quantity > 50 || normalized.quantity % 1 !== 0)) {
+                normalized.value = normalized.quantity;
+                normalized.quantity = 1;
             }
-
-            normalized.name = String(asset.nama || asset.name || 'TANPA NAMA');
-            // FIX: Map Google Sheet's 'category' header to our frontend 'type'
-            normalized.type = String(asset.jenis || asset.type || asset.category || 'other');
-            normalized.noSiri = String(asset.nosiri || asset.noSiri || '');
-            normalized.kewPa = String(asset.kewpa || asset.kewPa || asset.kewPa2 || '');
-            normalized.kewPa3 = String(asset.kewpa3 || asset.kewPa3 || '');
 
             return normalized;
         });
 
-        return normalizedAssets;
+        // --- NAME-BASED SYNCHRONIZATION (CLEAN DATA SYNC) ---
+        // Create a 'Truth Registry' for each item name
+        const truthRegistry = {};
+        rawAssets.forEach(asset => {
+            const nameKey = asset.name.toUpperCase();
+            if (!truthRegistry[nameKey]) truthRegistry[nameKey] = asset;
+            
+            // If we find a version with an image OR a specific price (not 5000), update the truth
+            const currentTruth = truthRegistry[nameKey];
+            if (asset.image && !currentTruth.image) currentTruth.image = asset.image;
+            if (asset.value > 0 && asset.value !== 5000 && (currentTruth.value === 0 || currentTruth.value === 5000)) currentTruth.value = asset.value;
+            if (asset.date && !currentTruth.date) currentTruth.date = asset.date;
+        });
+
+        // Apply truth back to all assets with the same name
+        const synchronizedAssets = rawAssets.map(asset => {
+            const nameKey = asset.name.toUpperCase();
+            const truth = truthRegistry[nameKey];
+            return {
+                ...asset,
+                image: asset.image || truth.image,
+                value: (asset.value === 0 || asset.value === 5000) ? (truth.value || asset.value) : asset.value,
+                date: asset.date || truth.date || '2019-09-02'
+            };
+        });
+
+        return synchronizedAssets;
     } catch (error) {
         console.error('Error fetching assets:', error);
         return [];
@@ -70,36 +96,39 @@ export const fetchAssets = async () => {
 
 export const saveAsset = async (asset) => {
     const url = getScriptUrl();
-    if (!url) throw new Error('Google Script URL not configured');
+    if (!url || url.trim() === '') return false;
 
-    // Send the entire object (including noSiri, kewPa, etc.) so we don't drop fields
-    const payload = JSON.stringify({ action: 'save', asset });
-    
-    await fetch(url, { method: 'POST', mode: 'no-cors', body: payload });
-    return { success: true };
-};
+    try {
+        if (!asset.id) asset.id = crypto.randomUUID();
 
-export const updateAsset = async (id, data) => {
-    const url = getScriptUrl();
-    if (!url) throw new Error('Google Script URL not configured');
-
-    const payload = JSON.stringify({ action: 'update', id, data: { ...data, id } });
-    
-    await fetch(url, { method: 'POST', mode: 'no-cors', body: payload });
-    return { success: true };
+        const payload = JSON.stringify({ 
+            action: 'save', 
+            asset: asset 
+        });
+        
+        await fetch(url, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: payload 
+        });
+        
+        return true;
+    } catch (error) {
+        console.error('Error saving asset:', error);
+        return false;
+    }
 };
 
 export const deleteAsset = async (id) => {
     const url = getScriptUrl();
-    if (!url) throw new Error('Google Script URL not configured');
+    if (!url || url.trim() === '') return false;
 
-    const payload = JSON.stringify({ action: 'delete', id });
-    console.log(`Deleting asset ${id}, payload size: ${payload.length} chars`);
-
-    await fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: payload,
-    });
-    return { success: true };
+    try {
+        const payload = JSON.stringify({ action: 'delete', id });
+        await fetch(url, { method: 'POST', mode: 'no-cors', body: payload });
+        return true;
+    } catch (error) {
+        console.error('Error deleting asset:', error);
+        return false;
+    }
 };

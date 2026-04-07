@@ -10,13 +10,27 @@ const QRAssetView = ({ assetId }) => {
 
     useEffect(() => {
         if (assets.length > 0 && assetId) {
-            const foundAsset = assets.find(a => a.id === assetId);
+            const cleanId = String(assetId).trim().toLowerCase();
+            
+            // Try match by ID (UUID or numeric)
+            let foundAsset = assets.find(a => 
+                String(a.id).trim().toLowerCase() === cleanId
+            );
+            
+            // FALLBACK: Try match by No Siri (if someone used that as ID in QR)
+            if (!foundAsset) {
+                foundAsset = assets.find(a => 
+                    String(a.noSiri).trim().toLowerCase() === cleanId
+                );
+            }
+            
             setAsset(foundAsset || null);
         }
     }, [assets, assetId]);
 
     const getIcon = (type) => {
-        switch (type) {
+        const safeType = String(type || '').toLowerCase();
+        switch (safeType) {
             case 'electronics': return <Monitor size={20} className="text-blue-500" />;
             case 'furniture': return <Armchair size={20} className="text-orange-500" />;
             case 'cutlery': return <Utensils size={20} className="text-gray-500" />;
@@ -38,21 +52,70 @@ const QRAssetView = ({ assetId }) => {
         );
     }
 
-    if (error || (!asset && assets.length > 0)) {
+    if (error) {
         return (
             <div className="h-screen w-full bg-gray-50 flex flex-col items-center justify-center p-6 text-center overflow-hidden">
                 <div className="w-24 h-24 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-6 shadow-inner">
                     <AlertCircle size={48} />
                 </div>
-                <h1 className="text-2xl font-black text-gray-900 mb-2">Aset Tidak Ditemui</h1>
-                <p className="text-sm text-gray-500 mb-8 max-w-sm">Maaf, rekod aset untuk kod QR ini tiada dalam pangkalan data.</p>
+                <h1 className="text-2xl font-black text-gray-900 mb-2">Ralat Sambungan</h1>
+                <p className="text-sm text-gray-500 mb-8 max-w-sm">{error}</p>
+                <button
+                    onClick={() => refreshAssets()}
+                    className="w-full max-w-sm flex items-center justify-center gap-2 py-4 bg-amber-600 text-white font-black rounded-2xl hover:bg-amber-700 transition-all shadow-lg shadow-amber-200"
+                >
+                    <RefreshCw size={20} />
+                    CUBA SEMULA
+                </button>
+            </div>
+        );
+    }
+
+    // Logic for "Not Found" - if we finished loading and still no asset
+    if (!asset) {
+        console.log('--- DEBUG: ASET TIDAK DITEMUI ---');
+        console.log('Mencari ID:', assetId);
+        console.log('Jumlah Aset Tersedia:', assets.length);
+        if (assets.length > 0) {
+            console.log('Contoh ID sedia ada:', assets.slice(0, 5).map(a => a.id));
+        }
+
+        return (
+            <div className="h-screen w-full bg-gray-50 flex flex-col items-center justify-center p-6 text-center overflow-hidden">
+                <div className="w-24 h-24 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                    <Package size={48} />
+                </div>
+                <h1 className="text-2xl font-black text-gray-900 mb-2">
+                    {assets.length === 0 ? 'Database Kosong' : 'Aset Tidak Ditemui'}
+                </h1>
+                
+                <div className="bg-white p-4 rounded-2xl border border-gray-100 mb-8 w-full max-w-sm shadow-sm space-y-2">
+                    {assets.length === 0 ? (
+                        <p className="text-xs font-medium text-gray-500 leading-relaxed">
+                            Sambungan berjaya tetapi **0 rekod** dijumpai. Sila pastikan Google Sheets anda mempunyai data di bawah barisan tajuk.
+                        </p>
+                    ) : (
+                        <>
+                            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                <span>ID DICARI</span>
+                                <span className="text-orange-500 font-mono text-xs lowercase">{assetId}</span>
+                            </div>
+                            <div className="h-px bg-gray-50"></div>
+                            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                <span>JUMLAH DATA</span>
+                                <span className="text-gray-900">{assets.length} ASET</span>
+                            </div>
+                        </>
+                    )}
+                </div>
+
                 <div className="space-y-4 w-full max-w-sm">
                     <button
                         onClick={() => refreshAssets()}
                         className="w-full flex items-center justify-center gap-2 py-4 bg-amber-600 text-white font-black rounded-2xl hover:bg-amber-700 transition-all shadow-lg shadow-amber-200"
                     >
                         <RefreshCw size={20} />
-                        CUBA SEMULA
+                        KEMASKINI DATABASE
                     </button>
                     <a
                         href="/"
@@ -64,8 +127,6 @@ const QRAssetView = ({ assetId }) => {
             </div>
         );
     }
-
-    if (!asset) return null;
 
     // Determine values to show safely, mapping potential undefined values from sheets
     const displayImage = asset.image || asset.imej || null;

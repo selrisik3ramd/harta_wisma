@@ -8,14 +8,23 @@ export const useAssets = () => useContext(AssetContext);
 export const AssetProvider = ({ children }) => {
     const [assets, setAssets] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const loadAssets = async () => {
-            setLoading(true);
+    const loadAssets = async () => {
+        setLoading(true);
+        setError(null);
+        try {
             const data = await googleService.fetchAssets();
             setAssets(data);
+        } catch (err) {
+            console.error('Failed to load assets:', err);
+            setError(err.message);
+        } finally {
             setLoading(false);
-        };
+        }
+    };
+
+    useEffect(() => {
         loadAssets();
     }, []);
 
@@ -27,11 +36,16 @@ export const AssetProvider = ({ children }) => {
     };
 
     const updateAsset = async (id, updatedData) => {
+        // Find existing asset to merge
+        const existingAsset = assets.find(a => a.id === id);
+        const newAsset = { ...existingAsset, ...updatedData };
+        
         // Optimistic update
         setAssets((prev) =>
-            prev.map((asset) => (asset.id === id ? { ...asset, ...updatedData } : asset))
+            prev.map((asset) => (asset.id === id ? newAsset : asset))
         );
-        await googleService.updateAsset(id, updatedData);
+        await googleService.saveAsset(newAsset);
+        await loadAssets(); // Force full sync from server
     };
 
     const deleteAsset = async (id) => {
@@ -43,15 +57,11 @@ export const AssetProvider = ({ children }) => {
     const value = {
         assets,
         loading,
+        error,
         addAsset,
         updateAsset,
         deleteAsset,
-        refreshAssets: async () => {
-            setLoading(true);
-            const data = await googleService.fetchAssets();
-            setAssets(data);
-            setLoading(false);
-        }
+        refreshAssets: loadAssets
     };
 
     return <AssetContext.Provider value={value}>{children}</AssetContext.Provider>;
