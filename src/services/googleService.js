@@ -29,39 +29,39 @@ export const fetchAssets = async () => {
         const normalizedAssets = assetsArray.map(asset => {
             const normalized = { ...asset };
 
-            // Map common translations/variations safely
-            // Ensure no undefined or null objects crash the React rendering engine
+            // Check if backend used Object.values and shifted the columns
+            // Meaning 'location' column got quantity (number), and 'quantity' got value (number)
+            const isShifted = typeof asset.location === 'number' || (!isNaN(parseFloat(asset.location)) && asset.location !== '');
+
+            if (isShifted) {
+                // Recover data from shifted columns
+                normalized.quantity = parseInt(asset.location) || 1;
+                normalized.value = parseFloat(asset.quantity) || 0;
+                // Date went into 'image' column
+                normalized.date = String(asset.image || new Date().toISOString().split('T')[0]);
+                // Image went into 'createdAt' column
+                let potImg = asset.createdAt || '';
+                normalized.image = typeof potImg === 'string' && potImg.startsWith('data:image') ? potImg : null;
+                // Location went into column 8 which has an empty header ''
+                normalized.location = String(asset[""] || '-');
+            } else {
+                normalized.quantity = parseInt(asset.kuantiti || asset.quantity) || 1;
+                normalized.value = parseFloat(asset.nilai || asset.value || asset.harga) || 0;
+                normalized.date = String(asset.tarikh || asset.date || new Date().toISOString().split('T')[0]);
+                normalized.location = String(asset.lokasi || asset.location || '-');
+                
+                let potImg = asset.imej || asset.image || '';
+                normalized.image = typeof potImg === 'string' && potImg.startsWith('data:image') ? potImg : null;
+            }
+
             normalized.name = String(asset.nama || asset.name || 'TANPA NAMA');
             normalized.type = String(asset.jenis || asset.type || 'other');
-            normalized.quantity = parseInt(asset.kuantiti || asset.quantity) || 1;
-            normalized.value = parseFloat(asset.nilai || asset.value) || 0;
-            normalized.date = String(asset.tarikh || asset.date || new Date().toISOString().split('T')[0]);
-            normalized.location = String(asset.lokasi || asset.location || '');
-
-            // Map serial IDs safely as strings
             normalized.noSiri = String(asset.nosiri || asset.noSiri || '');
             normalized.kewPa = String(asset.kewpa || asset.kewPa || asset.kewPa2 || '');
             normalized.kewPa3 = String(asset.kewpa3 || asset.kewPa3 || '');
 
-            // CRITICAL FIX: The image field must be a valid base64 image string or empty.
-            // If the backend accidentally maps 'createdAt' (like '2026-03-02T13...') to 'image', this throws it out.
-            let potentialImage = asset.imej || asset.image || '';
-            if (typeof potentialImage === 'string' && potentialImage.startsWith('data:image')) {
-                normalized.image = potentialImage;
-            } else {
-                normalized.image = null; // Do not render invalid dates or strings as src
-            }
-
             return normalized;
         });
-
-        if (normalizedAssets.length > 0) {
-            const testAsset = normalizedAssets[0];
-            console.log('DIAGNOSTIK: Aset Pertama Selamat Diproses:', {
-                nama: testAsset.name,
-                ada_imej: !!testAsset.image
-            });
-        }
 
         return normalizedAssets;
     } catch (error) {
@@ -70,23 +70,28 @@ export const fetchAssets = async () => {
     }
 };
 
+const getOrderedAsset = (asset) => {
+    // Guarantees property order for Google Apps Script Object.values() appending
+    return {
+        id: asset.id,
+        name: asset.name,
+        type: asset.type,
+        location: asset.location || 'Tiada',
+        quantity: parseInt(asset.quantity) || 1,
+        value: parseFloat(asset.value) || 0,
+        date: asset.date || new Date().toISOString().split('T')[0],
+        image: asset.image || ''
+    };
+};
+
 export const saveAsset = async (asset) => {
     const url = getScriptUrl();
     if (!url) throw new Error('Google Script URL not configured');
 
-    const payload = JSON.stringify({ action: 'save', asset });
-    console.log(`Sending asset ${asset.id}, payload size: ${payload.length} chars`);
-
-    const response = await fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: payload,
-    });
-
-    // With no-cors, we can't read the response. 
-    // Usually, we use a trick or just assume success if it doesn't throw.
-    // However, Apps Script can handle CORS if properly set up.
-    // Let's try standard fetch first.
+    const orderedAsset = getOrderedAsset(asset);
+    const payload = JSON.stringify({ action: 'save', asset: orderedAsset });
+    
+    await fetch(url, { method: 'POST', mode: 'no-cors', body: payload });
     return { success: true };
 };
 
@@ -94,14 +99,10 @@ export const updateAsset = async (id, data) => {
     const url = getScriptUrl();
     if (!url) throw new Error('Google Script URL not configured');
 
-    const payload = JSON.stringify({ action: 'update', id, data });
-    console.log(`Updating asset ${id}, payload size: ${payload.length} chars`);
-
-    await fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: payload,
-    });
+    const orderedAsset = getOrderedAsset({ ...data, id });
+    const payload = JSON.stringify({ action: 'update', id, data: orderedAsset });
+    
+    await fetch(url, { method: 'POST', mode: 'no-cors', body: payload });
     return { success: true };
 };
 
