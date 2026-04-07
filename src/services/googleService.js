@@ -37,25 +37,23 @@ export const fetchAssets = async () => {
                 // Recover data from shifted columns
                 normalized.quantity = parseInt(asset.location) || 1;
                 normalized.value = parseFloat(asset.quantity) || 0;
-                // Date went into 'image' column
                 normalized.date = String(asset.image || new Date().toISOString().split('T')[0]);
-                // Image went into 'createdAt' column
                 let potImg = asset.createdAt || '';
                 normalized.image = typeof potImg === 'string' && potImg.startsWith('data:image') ? potImg : null;
-                // Location went into column 8 which has an empty header ''
-                normalized.location = String(asset[""] || '-');
+                // Location did not exist in old records, the empty header column was actually a timestamp!
+                normalized.location = '-';
             } else {
                 normalized.quantity = parseInt(asset.kuantiti || asset.quantity) || 1;
                 normalized.value = parseFloat(asset.nilai || asset.value || asset.harga) || 0;
                 normalized.date = String(asset.tarikh || asset.date || new Date().toISOString().split('T')[0]);
                 normalized.location = String(asset.lokasi || asset.location || '-');
-                
                 let potImg = asset.imej || asset.image || '';
                 normalized.image = typeof potImg === 'string' && potImg.startsWith('data:image') ? potImg : null;
             }
 
             normalized.name = String(asset.nama || asset.name || 'TANPA NAMA');
-            normalized.type = String(asset.jenis || asset.type || 'other');
+            // FIX: Map Google Sheet's 'category' header to our frontend 'type'
+            normalized.type = String(asset.jenis || asset.type || asset.category || 'other');
             normalized.noSiri = String(asset.nosiri || asset.noSiri || '');
             normalized.kewPa = String(asset.kewpa || asset.kewPa || asset.kewPa2 || '');
             normalized.kewPa3 = String(asset.kewpa3 || asset.kewPa3 || '');
@@ -70,26 +68,12 @@ export const fetchAssets = async () => {
     }
 };
 
-const getOrderedAsset = (asset) => {
-    // Guarantees property order for Google Apps Script Object.values() appending
-    return {
-        id: asset.id,
-        name: asset.name,
-        type: asset.type,
-        location: asset.location || 'Tiada',
-        quantity: parseInt(asset.quantity) || 1,
-        value: parseFloat(asset.value) || 0,
-        date: asset.date || new Date().toISOString().split('T')[0],
-        image: asset.image || ''
-    };
-};
-
 export const saveAsset = async (asset) => {
     const url = getScriptUrl();
     if (!url) throw new Error('Google Script URL not configured');
 
-    const orderedAsset = getOrderedAsset(asset);
-    const payload = JSON.stringify({ action: 'save', asset: orderedAsset });
+    // Send the entire object (including noSiri, kewPa, etc.) so we don't drop fields
+    const payload = JSON.stringify({ action: 'save', asset });
     
     await fetch(url, { method: 'POST', mode: 'no-cors', body: payload });
     return { success: true };
@@ -99,8 +83,7 @@ export const updateAsset = async (id, data) => {
     const url = getScriptUrl();
     if (!url) throw new Error('Google Script URL not configured');
 
-    const orderedAsset = getOrderedAsset({ ...data, id });
-    const payload = JSON.stringify({ action: 'update', id, data: orderedAsset });
+    const payload = JSON.stringify({ action: 'update', id, data: { ...data, id } });
     
     await fetch(url, { method: 'POST', mode: 'no-cors', body: payload });
     return { success: true };
