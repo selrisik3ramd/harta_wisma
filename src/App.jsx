@@ -9,6 +9,7 @@ import AssetDetailModal from './components/Assets/AssetDetailModal';
 import SettingsModal from './components/Assets/SettingsModal';
 import AssetsDetailedView from './components/Assets/AssetsDetailedView';
 import QRAssetView from './components/Assets/QRAssetView';
+import ReportsView from './components/Reports/ReportsView';
 import logo3Ramd from './assets/logo-3ramd.png';
 import './index.css';
 
@@ -127,7 +128,7 @@ function MainApp() {
       case 'assets':
         return <AssetsDetailedView />;
       case 'reports':
-        return <div className="p-20 text-center font-black text-gray-300">MODUL LAPORAN AKAN DATANG</div>;
+        return <ReportsView />;
       default:
         return <DashboardContent />;
     }
