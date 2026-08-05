@@ -1,6 +1,6 @@
-import { Menu, Bell, User } from 'lucide-react';
+import { Menu, Bell, User, QrCode } from 'lucide-react';
 
-const Header = ({ toggleSidebar }) => {
+const Header = ({ toggleSidebar, onOpenScanner }) => {
     return (
         <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-gray-100 h-20 px-4 md:px-8 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-4 lg:gap-6 flex-1 min-w-0">
@@ -24,7 +24,16 @@ const Header = ({ toggleSidebar }) => {
                 </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+                <button
+                    onClick={onOpenScanner}
+                    className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold rounded-xl shadow-md shadow-amber-200 transition-all hover:scale-[1.03] active:scale-[0.97] text-xs"
+                    title="Imbas QR Aset"
+                >
+                    <QrCode size={18} />
+                    <span className="hidden sm:inline">IMBAS QR</span>
+                </button>
+
                 <button className="p-2 rounded-full hover:bg-gray-50 text-gray-500 relative transition-colors">
                     <Bell size={20} />
                     <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
@@ -37,7 +46,7 @@ const Header = ({ toggleSidebar }) => {
                         <User size={18} />
                     </div>
                     <span className="text-sm font-medium text-gray-700 hidden sm:block pr-2">
-                        Kapt Khairun
+                        AJK Harta Wisma
                     </span>
                 </button>
             </div>

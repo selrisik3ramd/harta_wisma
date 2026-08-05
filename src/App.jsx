@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Layers, Settings, RefreshCw } from 'lucide-react';
+import { Plus, Layers, Settings, RefreshCw, Camera, QrCode } from 'lucide-react';
 import { AssetProvider, useAssets } from './context/AssetContext';
 import MainLayout from './components/Layout/MainLayout';
 import AssetContainer from './components/Assets/AssetContainer';
@@ -10,14 +10,14 @@ import SettingsModal from './components/Assets/SettingsModal';
 import AssetsDetailedView from './components/Assets/AssetsDetailedView';
 import QRAssetView from './components/Assets/QRAssetView';
 import ReportsView from './components/Reports/ReportsView';
+import QRScannerModal from './components/Assets/QRScannerModal';
 import logo3Ramd from './assets/logo-3ramd.png';
 import './index.css';
 
-function DashboardContent() {
+function DashboardContent({ onOpenScanner, scannedAsset, setScannedAsset }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { assets, loading, refreshAssets } = useAssets();
-  const [scannedAsset, setScannedAsset] = useState(null);
 
   return (
     <>
@@ -40,7 +40,7 @@ function DashboardContent() {
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <button
             onClick={() => refreshAssets()}
             disabled={loading}
@@ -56,6 +56,16 @@ function DashboardContent() {
             title="Database Settings"
           >
             <Settings size={24} />
+          </button>
+
+          <button
+            onClick={onOpenScanner}
+            className="group flex items-center justify-center gap-2.5 px-6 py-4 bg-gradient-to-r from-gray-900 via-gray-800 to-amber-950 hover:from-black hover:to-amber-900 text-amber-400 font-black rounded-2xl transition-all shadow-xl shadow-gray-200 hover:scale-[1.02] active:scale-[0.98] border border-amber-500/20"
+          >
+            <div className="bg-amber-500/20 p-1.5 rounded-xl text-amber-400 group-hover:scale-110 transition-transform">
+              <Camera size={20} />
+            </div>
+            IMBAS QR KAMERA
           </button>
 
           <button
@@ -109,6 +119,8 @@ function DashboardContent() {
 function MainApp() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [urlAssetId, setUrlAssetId] = useState(null);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [scannedAsset, setScannedAsset] = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -130,14 +142,34 @@ function MainApp() {
       case 'reports':
         return <ReportsView />;
       default:
-        return <DashboardContent />;
+        return (
+          <DashboardContent
+            onOpenScanner={() => setIsScannerOpen(true)}
+            scannedAsset={scannedAsset}
+            setScannedAsset={setScannedAsset}
+          />
+        );
     }
   };
 
   return (
-    <MainLayout currentView={currentView} setCurrentView={setCurrentView}>
-      {renderView()}
-    </MainLayout>
+    <>
+      <MainLayout
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        onOpenScanner={() => setIsScannerOpen(true)}
+      >
+        {renderView()}
+      </MainLayout>
+
+      <QRScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onAssetFound={(asset) => {
+          setScannedAsset(asset);
+        }}
+      />
+    </>
   );
 }
 
