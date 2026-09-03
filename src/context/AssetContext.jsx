@@ -9,6 +9,21 @@ export const AssetProvider = ({ children }) => {
     const [assets, setAssets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [currentDepartment, setCurrentDepartment] = useState(() => {
+        try {
+            return localStorage.getItem('eharta_active_dept') || 'wisma_perwira';
+        } catch {
+            return 'wisma_perwira';
+        }
+    });
+
+    useEffect(() => {
+        try {
+            localStorage.setItem('eharta_active_dept', currentDepartment);
+        } catch (e) {
+            console.warn('Failed to persist active department:', e);
+        }
+    }, [currentDepartment]);
 
     // Load cached audit & movement data from localStorage to ensure resilience
     const getStoredAuditData = () => {
@@ -57,13 +72,14 @@ export const AssetProvider = ({ children }) => {
             const auditMap = getStoredAuditData();
             const movementMap = getStoredMovements();
 
-            // Merge local audit and history data
+            // Merge local audit and history data, ensuring department is assigned
             const enriched = data.map(asset => {
                 const localAudit = auditMap[asset.id] || {};
                 const localHistory = movementMap[asset.id] || [];
 
                 return {
                     ...asset,
+                    department: asset.department || 'wisma_perwira',
                     auditStatus: asset.auditStatus || localAudit.status || 'pending',
                     lastAuditDate: asset.lastAuditDate || localAudit.date || null,
                     auditNotes: asset.auditNotes || localAudit.notes || '',
@@ -84,19 +100,26 @@ export const AssetProvider = ({ children }) => {
         loadAssets();
     }, []);
 
+    // Filtered assets based on selected department
+    const departmentAssets = currentDepartment === 'all' 
+        ? assets 
+        : assets.filter(a => (a.department || 'wisma_perwira') === currentDepartment);
+
     const addAsset = async (asset) => {
+        const targetDept = asset.department || (currentDepartment !== 'all' ? currentDepartment : 'wisma_perwira');
         const newAsset = { 
             ...asset, 
             id: asset.id || crypto.randomUUID(), 
+            department: targetDept,
             createdAt: new Date().toISOString(),
             auditStatus: 'verified',
             lastAuditDate: new Date().toISOString(),
             locationHistory: [{
                 from: '-',
-                to: asset.location || 'Wisma Perwira',
+                to: asset.location || 'Lokasi Pendaftaran',
                 date: new Date().toISOString(),
                 reason: 'Pendaftaran Aset Baharu',
-                officer: 'Pegawai Wisma'
+                officer: 'Pegawai Bertugas'
             }]
         };
         // Optimistic update
@@ -195,6 +218,9 @@ export const AssetProvider = ({ children }) => {
 
     const value = {
         assets,
+        departmentAssets,
+        currentDepartment,
+        setCurrentDepartment,
         loading,
         error,
         addAsset,

@@ -8,39 +8,49 @@ import { useAssets } from '../../context/AssetContext';
 import { formatCurrency, getAssetTypeLabel, calculateTotalValue } from '../../utils/formatters';
 import TransferLocationModal from '../Assets/TransferLocationModal';
 
-const StocktakeView = ({ onOpenScanner }) => {
-    const { assets, verifyAssetAudit, resetAuditSession } = useAssets();
+import { useAuth } from '../../context/AuthContext';
+import { getDepartmentById } from '../../constants/departments';
+
+const StocktakeView = ({ onOpenScanner, onOpenLogin }) => {
+    const { departmentAssets, currentDepartment, verifyAssetAudit, resetAuditSession } = useAssets();
+    const { isAuthenticated, currentUser, canManage } = useAuth();
+    
+    const activeDept = getDepartmentById(currentDepartment);
+    const targetAssets = departmentAssets || [];
+
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [locationFilter, setLocationFilter] = useState('all');
     const [transferModalAsset, setTransferModalAsset] = useState(null);
     const [quickNotes, setQuickNotes] = useState({});
-    const [officerName, setOfficerName] = useState('Pegawai Pemeriksa 3 RAMD');
+    const [officerName, setOfficerName] = useState(() => {
+        return currentUser ? `${currentUser.name} (${currentUser.serviceNo || '3 RAMD'})` : 'Pegawai Pemeriksa 3 RAMD';
+    });
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const [activeDamageModalAsset, setActiveDamageModalAsset] = useState(null);
     const [damageNote, setDamageNote] = useState('');
 
-    // Unique Locations
+    // Unique Locations for active sector
     const locations = useMemo(() => {
         const set = new Set();
-        assets.forEach(a => {
+        targetAssets.forEach(a => {
             if (a.location && a.location.trim() !== '') {
                 set.add(a.location.trim());
             }
         });
         return Array.from(set).sort();
-    }, [assets]);
+    }, [targetAssets]);
 
-    // Audit Statistics
+    // Audit Statistics for active sector
     const stats = useMemo(() => {
-        const total = assets.length;
+        const total = targetAssets.length;
         let verified = 0;
         let damaged = 0;
         let missing = 0;
         let pending = 0;
         let verifiedValue = 0;
 
-        assets.forEach(a => {
+        targetAssets.forEach(a => {
             const status = a.auditStatus || 'pending';
             const val = calculateTotalValue(a.value, a.quantity);
             if (status === 'verified') {

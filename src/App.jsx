@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Layers, Settings, RefreshCw, Camera, QrCode } from 'lucide-react';
+import { Plus, Layers, Settings, RefreshCw, Camera, QrCode, Lock, ShieldCheck, AlertCircle } from 'lucide-react';
 import { AssetProvider, useAssets } from './context/AssetContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import MainLayout from './components/Layout/MainLayout';
 import AssetContainer from './components/Assets/AssetContainer';
 import AddAssetModal from './components/Assets/AddAssetModal';
@@ -12,12 +13,28 @@ import QRAssetView from './components/Assets/QRAssetView';
 import ReportsView from './components/Reports/ReportsView';
 import QRScannerModal from './components/Assets/QRScannerModal';
 import StocktakeView from './components/Stocktake/StocktakeView';
+import AdminLoginModal from './components/Auth/AdminLoginModal';
+import { getDepartmentById } from './constants/departments';
 import logo3Ramd from './assets/logo-3ramd.png';
 import './index.css';
 
-function DashboardContent({ onOpenScanner, onOpenSettings }) {
+function DashboardContent({ onOpenScanner, onOpenSettings, onOpenLogin }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { assets, loading, refreshAssets } = useAssets();
+  const { assets, departmentAssets, currentDepartment, loading, refreshAssets } = useAssets();
+  const { isAuthenticated, currentUser, canManage } = useAuth();
+
+  const activeDept = getDepartmentById(currentDepartment);
+  const hasWritePermission = canManage(currentDepartment);
+
+  const handleAddAssetClick = () => {
+    if (!isAuthenticated) {
+      onOpenLogin();
+    } else if (!hasWritePermission) {
+      alert(`Akaun anda (${currentUser.roleTitle}) tidak mempunyai kebenaran untuk mengurus aset bagi ${activeDept.name}. Sila tukar ke sektor anda atau log masuk dengan peranan yang sah.`);
+    } else {
+      setIsModalOpen(true);
+    }
+  };
 
   return (
     <>
@@ -44,20 +61,23 @@ function DashboardContent({ onOpenScanner, onOpenSettings }) {
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="px-3 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-black uppercase tracking-widest">
-                  PORTAL RASMI INVENTORI ASET
+                  E-HARTA 3 RAMD
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                  SISTEM AKTIF
+                <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${
+                  isAuthenticated 
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' 
+                    : 'bg-slate-800 text-slate-400 border-slate-700'
+                }`}>
+                  {isAuthenticated ? `PENTADBIR: ${currentUser.rank || currentUser.name}` : 'MOD PAPARAN AWAM'}
                 </span>
               </div>
 
               <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                WISMA PERWIRA <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500">BN 3 RAMD</span>
+                {activeDept.name.toUpperCase()}
               </h1>
 
               <p className="text-xs text-slate-300 font-medium max-w-xl">
-                Pengurusan Aset Pintar Berasaskan Kod QR • Home of the Akinabalu Warriors
+                {activeDept.description} • Home of the Akinabalu Warriors
               </p>
             </div>
           </div>
@@ -92,17 +112,39 @@ function DashboardContent({ onOpenScanner, onOpenSettings }) {
             </button>
 
             <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2.5 px-6 py-3.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-slate-950 font-black rounded-2xl transition-all shadow-xl shadow-amber-500/20 hover:scale-[1.02] active:scale-[0.98] text-xs uppercase tracking-wider"
+              onClick={handleAddAssetClick}
+              className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98] text-xs uppercase tracking-wider font-black ${
+                hasWritePermission 
+                  ? 'bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-slate-950 shadow-amber-500/20' 
+                  : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 shadow-black/40'
+              }`}
             >
-              <div className="bg-slate-950/20 p-1 rounded-lg">
-                <Plus size={18} className="text-slate-950 font-black" />
+              <div className="p-1 rounded-lg bg-black/20">
+                {hasWritePermission ? <Plus size={18} /> : <Lock size={18} className="text-amber-400" />}
               </div>
-              Tambah Aset Baharu
+              {hasWritePermission ? 'Tambah Aset Baharu' : 'Log Masuk Untuk Tambah'}
             </button>
           </div>
         </div>
       </div>
+
+      {/* Read-Only Notice Banner if not logged in */}
+      {!isAuthenticated && (
+        <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-3 text-amber-900">
+            <Lock size={18} className="text-amber-600 shrink-0" />
+            <span>
+              <strong>Perhatian:</strong> Sistem sedang berada dalam <strong>Mod Paparan Awam (Read-Only)</strong>. Anda boleh melihat aset dan mengimbas kod QR, tetapi log masuk pentadbir diperlukan untuk menambah, mengubah suai atau mengesahkan audit aset.
+            </span>
+          </div>
+          <button
+            onClick={onOpenLogin}
+            className="px-4 py-2 bg-slate-950 hover:bg-black text-amber-300 font-bold rounded-xl border border-amber-500/40 shrink-0 transition-all uppercase tracking-wider text-[11px]"
+          >
+            Log Masuk Pentadbir
+          </button>
+        </div>
+      )}
 
       <div className="relative">
         {loading && (
@@ -115,13 +157,14 @@ function DashboardContent({ onOpenScanner, onOpenSettings }) {
         )}
         <div className={`space-y-6 transition-all duration-500 ${loading ? 'opacity-50 blur-[2px] pointer-events-none' : 'opacity-100 blur-0'}`}>
           <SummaryCards />
-          <AssetContainer />
+          <AssetContainer onOpenLogin={onOpenLogin} />
         </div>
       </div>
 
       <AddAssetModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        presetDepartment={currentDepartment !== 'all' ? currentDepartment : 'wisma_perwira'}
       />
     </>
   );
@@ -132,7 +175,9 @@ function MainApp() {
   const [urlAssetId, setUrlAssetId] = useState(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [scannedAsset, setScannedAsset] = useState(null);
+  const { currentDepartment } = useAssets();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -144,15 +189,15 @@ function MainApp() {
 
   // If there's an assetId in URL, show standalone view
   if (urlAssetId) {
-    return <QRAssetView assetId={urlAssetId} />;
+    return <QRAssetView assetId={urlAssetId} onOpenLogin={() => setIsLoginModalOpen(true)} />;
   }
 
   const renderView = () => {
     switch (currentView) {
       case 'assets':
-        return <AssetsDetailedView />;
+        return <AssetsDetailedView onOpenLogin={() => setIsLoginModalOpen(true)} />;
       case 'stocktake':
-        return <StocktakeView onOpenScanner={() => setIsScannerOpen(true)} />;
+        return <StocktakeView onOpenScanner={() => setIsScannerOpen(true)} onOpenLogin={() => setIsLoginModalOpen(true)} />;
       case 'reports':
         return <ReportsView />;
       default:
@@ -160,6 +205,7 @@ function MainApp() {
           <DashboardContent
             onOpenScanner={() => setIsScannerOpen(true)}
             onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenLogin={() => setIsLoginModalOpen(true)}
           />
         );
     }
@@ -172,6 +218,7 @@ function MainApp() {
         setCurrentView={setCurrentView}
         onOpenScanner={() => setIsScannerOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenLogin={() => setIsLoginModalOpen(true)}
       >
         {renderView()}
       </MainLayout>
@@ -189,11 +236,18 @@ function MainApp() {
         onClose={() => setIsSettingsOpen(false)}
       />
 
+      <AdminLoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        defaultDepartment={currentDepartment}
+      />
+
       {scannedAsset && (
         <AssetDetailModal
           asset={scannedAsset}
           isOpen={!!scannedAsset}
           onClose={() => setScannedAsset(null)}
+          onOpenLogin={() => setIsLoginModalOpen(true)}
         />
       )}
     </>
@@ -202,9 +256,11 @@ function MainApp() {
 
 function App() {
   return (
-    <AssetProvider>
-      <MainApp />
-    </AssetProvider>
+    <AuthProvider>
+      <AssetProvider>
+        <MainApp />
+      </AssetProvider>
+    </AuthProvider>
   );
 }
 

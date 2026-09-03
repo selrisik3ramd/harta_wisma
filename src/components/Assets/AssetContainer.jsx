@@ -3,12 +3,17 @@ import { Trash2, Layers, Monitor, Armchair, Utensils, Search, Image as ImageIcon
 import { useAssets } from '../../context/AssetContext';
 import EditAssetModal from './EditAssetModal';
 import { formatCurrency, formatDate, getAssetTypeLabel, calculateTotalValue } from '../../utils/formatters';
+import { useAuth } from '../../context/AuthContext';
+import { getDepartmentById } from '../../constants/departments';
 
-const AssetContainer = () => {
-    const { assets, deleteAsset } = useAssets();
+const AssetContainer = ({ onOpenLogin }) => {
+    const { departmentAssets, currentDepartment, deleteAsset } = useAssets();
+    const { isAuthenticated, canManage } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('date');
     const [editingAsset, setEditingAsset] = useState(null);
+
+    const activeDept = getDepartmentById(currentDepartment);
 
     const getIcon = (type) => {
         switch (type) {
@@ -18,7 +23,10 @@ const AssetContainer = () => {
             default: return <Layers size={20} className="text-gray-500" />;
         }
     };
-    const filteredAssets = assets
+
+    const assetsToDisplay = departmentAssets || [];
+
+    const filteredAssets = assetsToDisplay
         .filter(asset =>
             asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             asset.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -235,23 +243,43 @@ const AssetContainer = () => {
                                 <td className="px-6 py-5 text-right">
                                     <div className="flex items-center justify-end gap-2">
                                         <button
-                                            onClick={() => setEditingAsset(asset)}
-                                            className="flex items-center gap-1.5 px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black shadow-md shadow-amber-200 transition-all hover:scale-[1.05] active:scale-[0.95]"
-                                            title="Kemaskini Aset"
+                                            onClick={() => {
+                                                if (!canManage(asset.department || currentDepartment)) {
+                                                    if (!isAuthenticated && onOpenLogin) onOpenLogin();
+                                                    else alert('Akaun anda tidak mempunyai kebenaran untuk mengemaskini aset ini.');
+                                                    return;
+                                                }
+                                                setEditingAsset(asset);
+                                            }}
+                                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black shadow-md transition-all hover:scale-[1.05] active:scale-[0.95] ${
+                                                canManage(asset.department || currentDepartment)
+                                                    ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-200'
+                                                    : 'bg-slate-800 text-slate-400 border border-slate-700'
+                                            }`}
+                                            title={canManage(asset.department || currentDepartment) ? "Kemaskini Aset" : "Log Masuk Pentadbir Diperlukan"}
                                         >
-                                            <Edit2 size={15} />
+                                            <Edit2 size={14} />
                                             <span>Edit</span>
                                         </button>
                                         <button
                                             onClick={() => {
+                                                if (!canManage(asset.department || currentDepartment)) {
+                                                    if (!isAuthenticated && onOpenLogin) onOpenLogin();
+                                                    else alert('Akaun anda tidak mempunyai kebenaran untuk memadam aset ini.');
+                                                    return;
+                                                }
                                                 if (window.confirm('Adakah anda pasti mahu memadam aset ini?')) {
                                                     deleteAsset(asset.id);
                                                 }
                                             }}
-                                            className="flex items-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black shadow-md shadow-red-200 transition-all hover:scale-[1.05] active:scale-[0.95]"
-                                            title="Padam Aset"
+                                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black shadow-md transition-all hover:scale-[1.05] active:scale-[0.95] ${
+                                                canManage(asset.department || currentDepartment)
+                                                    ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-200'
+                                                    : 'bg-slate-800 text-slate-400 border border-slate-700'
+                                            }`}
+                                            title={canManage(asset.department || currentDepartment) ? "Padam Aset" : "Log Masuk Pentadbir Diperlukan"}
                                         >
-                                            <Trash2 size={15} />
+                                            <Trash2 size={14} />
                                             <span>Padam</span>
                                         </button>
                                     </div>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
-const MainLayout = ({ children, currentView, setCurrentView, onOpenScanner, onOpenSettings }) => {
+const MainLayout = ({ children, currentView, setCurrentView, onOpenScanner, onOpenSettings, onOpenLogin }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
@@ -20,12 +20,14 @@ const MainLayout = ({ children, currentView, setCurrentView, onOpenScanner, onOp
                 currentView={currentView}
                 setCurrentView={setCurrentView}
                 onOpenSettings={onOpenSettings}
+                onOpenLogin={onOpenLogin}
             />
 
             <div className={`lg:pl-72 flex flex-col min-h-screen transition-all duration-300 relative`}>
                 <Header 
                     toggleSidebar={() => setSidebarOpen(!sidebarOpen)} 
                     onOpenScanner={onOpenScanner}
+                    onOpenLogin={onOpenLogin}
                 />
 
                 <main className="flex-1 p-6 lg:p-8">

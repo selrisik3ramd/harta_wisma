@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
-import { X, Upload, Printer, CheckCircle2 } from 'lucide-react';
+import { X, Upload, Printer, CheckCircle2, Building2 } from 'lucide-react';
 import { useAssets } from '../../context/AssetContext';
 import { QRCodeCanvas } from 'qrcode.react';
+import { DEPARTMENTS, getDepartmentById } from '../../constants/departments';
 
-const AddAssetModal = ({ isOpen, onClose }) => {
+const AddAssetModal = ({ isOpen, onClose, presetDepartment = 'wisma_perwira' }) => {
     const { addAsset } = useAssets();
     const fileInputRef = useRef(null);
     const qrRef = useRef(null);
@@ -15,6 +16,7 @@ const AddAssetModal = ({ isOpen, onClose }) => {
     const [formData, setFormData] = useState({
         name: '',
         type: 'electronics',
+        department: presetDepartment || 'wisma_perwira',
         quantity: 1,
         value: '',
         date: new Date().toISOString().split('T')[0],
@@ -308,16 +310,51 @@ const AddAssetModal = ({ isOpen, onClose }) => {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Lokasi Aset
+                            Sektor / Stor / Kompeni (3 RAMD)
                         </label>
-                        <input
-                            type="text"
-                            placeholder="cth., Bilik Mesyuarat / Stor / Pejabat"
-                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all"
-                            value={formData.location}
-                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                            required
-                        />
+                        <select
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all bg-white font-bold text-slate-800"
+                            value={formData.department}
+                            onChange={(e) => {
+                                const newDept = e.target.value;
+                                const deptObj = getDepartmentById(newDept);
+                                setFormData({
+                                    ...formData,
+                                    department: newDept,
+                                    location: deptObj.presetLocations[0] || ''
+                                });
+                            }}
+                        >
+                            {DEPARTMENTS.filter(d => d.id !== 'all').map(d => (
+                                <option key={d.id} value={d.id}>{d.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Lokasi Penempatan
+                        </label>
+                        <div className="space-y-2">
+                            <select
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all bg-slate-50 text-xs font-semibold"
+                                value={formData.location}
+                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                            >
+                                <option value="">-- Pilih Lokasi Preset Sektor Ini --</option>
+                                {getDepartmentById(formData.department).presetLocations.map((loc, idx) => (
+                                    <option key={idx} value={loc}>{loc}</option>
+                                ))}
+                            </select>
+                            <input
+                                type="text"
+                                placeholder="Atau taip lokasi khusus..."
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all text-xs"
+                                value={formData.location}
+                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                required
+                            />
+                        </div>
                     </div>
 
 

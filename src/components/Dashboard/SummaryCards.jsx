@@ -3,11 +3,12 @@ import { useAssets } from '../../context/AssetContext';
 import { formatCurrency, getAssetTypeLabel, calculateTotalValue } from '../../utils/formatters';
 
 const SummaryCards = () => {
-    const { assets } = useAssets();
+    const { departmentAssets, currentDepartment } = useAssets();
+    const targetAssets = departmentAssets || [];
 
-    const totalValue = assets.reduce((sum, asset) => sum + calculateTotalValue(asset.value, asset.quantity), 0);
-    const totalUniqueAssets = assets.length;
-    const totalUnits = assets.reduce((sum, asset) => sum + (parseInt(asset.quantity) || 1), 0);
+    const totalValue = targetAssets.reduce((sum, asset) => sum + calculateTotalValue(asset.value, asset.quantity), 0);
+    const totalUniqueAssets = targetAssets.length;
+    const totalUnits = targetAssets.reduce((sum, asset) => sum + (parseInt(asset.quantity) || 1), 0);
     const averageValue = totalUnits > 0 ? totalValue / totalUnits : 0;
 
     // Audit health metrics
@@ -15,18 +16,18 @@ const SummaryCards = () => {
     let damagedCount = 0;
     let missingCount = 0;
 
-    assets.forEach(a => {
+    targetAssets.forEach(a => {
         if (a.auditStatus === 'verified') verifiedCount++;
         else if (a.auditStatus === 'damaged') damagedCount++;
         else if (a.auditStatus === 'missing') missingCount++;
     });
 
-    const auditCompletion = assets.length > 0
-        ? Math.round(((verifiedCount + damagedCount + missingCount) / assets.length) * 100)
+    const auditCompletion = targetAssets.length > 0
+        ? Math.round(((verifiedCount + damagedCount + missingCount) / targetAssets.length) * 100)
         : 0;
 
     // Find dominant category
-    const categoryCounts = assets.reduce((acc, asset) => {
+    const categoryCounts = targetAssets.reduce((acc, asset) => {
         acc[asset.type] = (acc[asset.type] || 0) + (parseInt(asset.quantity) || 1);
         return acc;
     }, {});
