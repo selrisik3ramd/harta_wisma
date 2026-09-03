@@ -75,14 +75,14 @@ export const fetchAssets = async () => {
             if (asset.date && !currentTruth.date) currentTruth.date = asset.date;
         });
 
-        // Apply truth back to all assets with the same name
+        // Apply truth back to all assets with the same name safely
         const synchronizedAssets = rawAssets.map(asset => {
-            const nameKey = asset.name.toUpperCase();
-            const truth = truthRegistry[nameKey];
+            const nameKey = (asset?.name || '').toUpperCase();
+            const truth = truthRegistry[nameKey] || asset || {};
             return {
                 ...asset,
-                image: asset.image || truth.image,
-                value: (asset.value === 0 || asset.value === 5000) ? (truth.value || asset.value) : asset.value,
+                image: asset.image || truth.image || null,
+                value: (asset.value === 0 || asset.value === 5000) ? (truth.value || asset.value || 0) : (asset.value || 0),
                 date: asset.date || truth.date || '2019-09-02'
             };
         });

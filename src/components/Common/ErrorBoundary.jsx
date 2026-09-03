@@ -19,12 +19,12 @@ class ErrorBoundary extends React.Component {
 
     handleReset = () => {
         try {
-            localStorage.removeItem('eharta_auth_user');
-            localStorage.removeItem('harta_wisma_current_dept');
+            localStorage.clear();
+            sessionStorage.clear();
         } catch (e) {
             console.error(e);
         }
-        window.location.reload();
+        window.location.replace(window.location.origin + '?reset=' + Date.now());
     };
 
     render() {
@@ -67,14 +67,15 @@ class ErrorBoundary extends React.Component {
                         </div>
 
                         {this.state.error && (
-                            <details className="mt-6 text-left border-t border-slate-800 pt-4">
-                                <summary className="text-[10px] text-slate-500 uppercase tracking-wider font-bold cursor-pointer">
-                                    Butiran Teknikal Ralat
-                                </summary>
-                                <pre className="mt-2 text-[10px] text-red-400 bg-black/50 p-3 rounded-lg overflow-x-auto font-mono">
+                            <div className="mt-6 text-left border-t border-slate-800 pt-4">
+                                <span className="text-[10px] text-amber-400 uppercase tracking-widest font-black block mb-1">
+                                    Butiran Teknikal Ralat:
+                                </span>
+                                <pre className="text-[10px] text-red-300 bg-black/60 border border-red-500/30 p-3 rounded-xl overflow-x-auto font-mono whitespace-pre-wrap break-all select-all max-h-48">
                                     {this.state.error.toString()}
+                                    {this.state.error.stack ? `\n\n${this.state.error.stack}` : ''}
                                 </pre>
-                            </details>
+                            </div>
                         )}
                     </div>
                 </div>
