@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getDepartmentById } from '../../constants/departments';
 
 const AssetContainer = ({ onOpenLogin }) => {
-    const { departmentAssets, currentDepartment, deleteAsset } = useAssets();
+    const { assets = [], departmentAssets = [], currentDepartment, deleteAsset } = useAssets();
     const { isAuthenticated, canManage } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('date');
@@ -109,7 +109,7 @@ const AssetContainer = ({ onOpenLogin }) => {
         document.body.removeChild(link);
     };
 
-    if (assets.length === 0) {
+    if (assetsToDisplay.length === 0) {
         return (
             <div className="bg-white rounded-3xl p-16 text-center border-2 border-dashed border-gray-100 shadow-sm">
                 <div className="w-20 h-20 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-amber-500 rotate-3">
