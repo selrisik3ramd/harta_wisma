@@ -67,14 +67,21 @@ class ErrorBoundary extends React.Component {
                         </div>
 
                         {this.state.error && (
-                            <div className="mt-6 text-left border-t border-slate-800 pt-4">
-                                <span className="text-[10px] text-amber-400 uppercase tracking-widest font-black block mb-1">
-                                    Butiran Teknikal Ralat:
+                            <div className="mt-6 text-left border-t border-slate-800 pt-4 space-y-2">
+                                <span className="text-[10px] text-amber-400 uppercase tracking-widest font-black block">
+                                    PUNCA UTAMA RALAT:
                                 </span>
-                                <pre className="text-[10px] text-red-300 bg-black/60 border border-red-500/30 p-3 rounded-xl overflow-x-auto font-mono whitespace-pre-wrap break-all select-all max-h-48">
+                                <div className="text-xs font-black text-yellow-300 bg-red-950/90 border border-red-500/60 p-3 rounded-xl select-all shadow-md">
                                     {this.state.error.toString()}
-                                    {this.state.error.stack ? `\n\n${this.state.error.stack}` : ''}
-                                </pre>
+                                </div>
+                                <details className="text-[10px] text-slate-400">
+                                    <summary className="cursor-pointer text-slate-500 font-bold hover:text-slate-300">
+                                        Lihat Susunan Stack Trace
+                                    </summary>
+                                    <pre className="mt-1 text-[9px] text-red-400 bg-black/70 p-2 rounded-lg overflow-x-auto font-mono max-h-32">
+                                        {this.state.error.stack || 'Tiada stack'}
+                                    </pre>
+                                </details>
                             </div>
                         )}
                     </div>

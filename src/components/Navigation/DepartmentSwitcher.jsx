@@ -43,7 +43,8 @@ const DepartmentSwitcher = ({ className = '' }) => {
         setIsOpen(false);
     };
 
-    const getIconForDept = (id) => {
+    const getIconForDept = (id = '') => {
+        if (!id) return <Building2 size={16} className="text-amber-400" />;
         if (id === 'all') return <Layers size={16} className="text-amber-400" />;
         if (id.startsWith('wisma')) return <Building2 size={16} className="text-amber-400" />;
         if (id === 'stor_pasukan') return <Warehouse size={16} className="text-emerald-400" />;
