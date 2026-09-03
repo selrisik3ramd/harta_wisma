@@ -12,7 +12,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getDepartmentById } from '../../constants/departments';
 
 const StocktakeView = ({ onOpenScanner, onOpenLogin }) => {
-    const { departmentAssets, currentDepartment, verifyAssetAudit, resetAuditSession } = useAssets();
+    const { assets = [], departmentAssets = [], currentDepartment, verifyAssetAudit, resetAuditSession } = useAssets();
     const { isAuthenticated, currentUser, canManage } = useAuth();
     
     const activeDept = getDepartmentById(currentDepartment);
@@ -34,7 +34,7 @@ const StocktakeView = ({ onOpenScanner, onOpenLogin }) => {
     const locations = useMemo(() => {
         const set = new Set();
         targetAssets.forEach(a => {
-            if (a.location && a.location.trim() !== '') {
+            if (a && a.location && a.location.trim() !== '') {
                 set.add(a.location.trim());
             }
         });
@@ -51,6 +51,7 @@ const StocktakeView = ({ onOpenScanner, onOpenLogin }) => {
         let verifiedValue = 0;
 
         targetAssets.forEach(a => {
+            if (!a) return;
             const status = a.auditStatus || 'pending';
             const val = calculateTotalValue(a.value, a.quantity);
             if (status === 'verified') {
@@ -78,11 +79,12 @@ const StocktakeView = ({ onOpenScanner, onOpenLogin }) => {
             progressPercent,
             verifiedValue
         };
-    }, [assets]);
+    }, [targetAssets]);
 
-    // Filtered Assets
+    // Filtered Assets for active sector
     const filteredAssets = useMemo(() => {
-        return assets.filter(asset => {
+        return targetAssets.filter(asset => {
+            if (!asset) return false;
             const status = asset.auditStatus || 'pending';
             const matchesStatus = statusFilter === 'all' || status === statusFilter;
             const matchesLocation = locationFilter === 'all' || (asset.location && asset.location.toLowerCase() === locationFilter.toLowerCase());
@@ -96,7 +98,7 @@ const StocktakeView = ({ onOpenScanner, onOpenLogin }) => {
 
             return matchesStatus && matchesLocation && matchesSearch;
         });
-    }, [assets, statusFilter, locationFilter, searchQuery]);
+    }, [targetAssets, statusFilter, locationFilter, searchQuery]);
 
     // Mark single asset audit
     const handleVerify = async (id, status, notes = '') => {
@@ -120,7 +122,7 @@ const StocktakeView = ({ onOpenScanner, onOpenLogin }) => {
             'Pegawai Audit'
         ];
 
-        const rows = assets.map((a, index) => {
+        const rows = targetAssets.map((a, index) => {
             const statusText = a.auditStatus === 'verified' ? 'SAH / BAIK'
                 : a.auditStatus === 'damaged' ? 'ROSAK'
                 : a.auditStatus === 'missing' ? 'HILANG'
@@ -149,7 +151,7 @@ const StocktakeView = ({ onOpenScanner, onOpenLogin }) => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.setAttribute('href', url);
-        link.setAttribute('download', `Laporan_Audit_Stok_Wisma_Perwira_${new Date().toISOString().slice(0, 10)}.csv`);
+        link.setAttribute('download', `Laporan_Audit_Stok_${(activeDept?.code || '3RAMD')}_${new Date().toISOString().slice(0, 10)}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -164,13 +166,13 @@ const StocktakeView = ({ onOpenScanner, onOpenLogin }) => {
                 <div className="space-y-2 relative z-10">
                     <div className="flex items-center gap-2">
                         <span className="px-3 py-1 bg-amber-500/20 border border-amber-400/30 text-amber-300 text-[10px] font-black tracking-widest uppercase rounded-full">
-                            SESI PEMERIKSAAN STOK FISIKAL (STOCKTAKE)
+                            SESI PEMERIKSAAN STOK FIZIKAL (STOCKTAKE)
                         </span>
-                        <span className="text-xs text-gray-400">• 3 RAMD</span>
+                        <span className="text-xs text-gray-400">• {activeDept?.shortName || '3 RAMD'}</span>
                     </div>
                     <h1 className="text-3xl font-black tracking-tight text-white flex items-center gap-3">
                         <ClipboardCheck className="text-amber-400" size={32} />
-                        Audit Inventori Wisma Perwira
+                        Audit Inventori {activeDept?.name || '3 RAMD'}
                     </h1>
                     <p className="text-sm text-gray-300 max-w-2xl">
                         Verifikasi fizikal aset, semakan integriti lokasi dan pelaporan kerosakan serta-merta menggunakan imbasan Kod QR atau semakan manual 1-klik.
