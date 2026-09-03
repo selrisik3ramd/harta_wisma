@@ -11,12 +11,12 @@ import AssetsDetailedView from './components/Assets/AssetsDetailedView';
 import QRAssetView from './components/Assets/QRAssetView';
 import ReportsView from './components/Reports/ReportsView';
 import QRScannerModal from './components/Assets/QRScannerModal';
+import StocktakeView from './components/Stocktake/StocktakeView';
 import logo3Ramd from './assets/logo-3ramd.png';
 import './index.css';
 
-function DashboardContent({ onOpenScanner, scannedAsset, setScannedAsset }) {
+function DashboardContent({ onOpenScanner, onOpenSettings }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { assets, loading, refreshAssets } = useAssets();
 
   return (
@@ -33,8 +33,8 @@ function DashboardContent({ onOpenScanner, scannedAsset, setScannedAsset }) {
             <div className="flex items-center gap-2 mt-2">
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">PENGURUSAN INVENTORI ASET</span>
               <span className="h-1 w-1 bg-gray-300 rounded-full"></span>
-              <span className="px-2 py-0.5 bg-red-600 text-white text-[9px] font-black rounded shadow-sm animate-pulse">
-                DATABASE V3.0 STABLE
+              <span className="px-2 py-0.5 bg-emerald-600 text-white text-[9px] font-black rounded shadow-sm">
+                SISTEM KIK 2026 STABLE
               </span>
             </div>
           </div>
@@ -51,7 +51,7 @@ function DashboardContent({ onOpenScanner, scannedAsset, setScannedAsset }) {
           </button>
 
           <button
-            onClick={() => setIsSettingsOpen(true)}
+            onClick={onOpenSettings}
             className="p-4 bg-white border-2 border-gray-100 hover:border-amber-100 text-gray-400 hover:text-amber-600 rounded-2xl transition-all shadow-sm hover:shadow-amber-50 flex items-center justify-center"
             title="Database Settings"
           >
@@ -99,19 +99,6 @@ function DashboardContent({ onOpenScanner, scannedAsset, setScannedAsset }) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
-
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
-
-      {scannedAsset && (
-        <AssetDetailModal
-          asset={scannedAsset}
-          isOpen={!!scannedAsset}
-          onClose={() => setScannedAsset(null)}
-        />
-      )}
     </>
   );
 }
@@ -120,6 +107,7 @@ function MainApp() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [urlAssetId, setUrlAssetId] = useState(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [scannedAsset, setScannedAsset] = useState(null);
 
   useEffect(() => {
@@ -139,14 +127,15 @@ function MainApp() {
     switch (currentView) {
       case 'assets':
         return <AssetsDetailedView />;
+      case 'stocktake':
+        return <StocktakeView onOpenScanner={() => setIsScannerOpen(true)} />;
       case 'reports':
         return <ReportsView />;
       default:
         return (
           <DashboardContent
             onOpenScanner={() => setIsScannerOpen(true)}
-            scannedAsset={scannedAsset}
-            setScannedAsset={setScannedAsset}
+            onOpenSettings={() => setIsSettingsOpen(true)}
           />
         );
     }
@@ -158,6 +147,7 @@ function MainApp() {
         currentView={currentView}
         setCurrentView={setCurrentView}
         onOpenScanner={() => setIsScannerOpen(true)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
       >
         {renderView()}
       </MainLayout>
@@ -169,6 +159,19 @@ function MainApp() {
           setScannedAsset(asset);
         }}
       />
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
+
+      {scannedAsset && (
+        <AssetDetailModal
+          asset={scannedAsset}
+          isOpen={!!scannedAsset}
+          onClose={() => setScannedAsset(null)}
+        />
+      )}
     </>
   );
 }

@@ -1,12 +1,19 @@
 import { useState, useEffect } from 'react';
-import { Monitor, Armchair, Utensils, Layers, Calendar, DollarSign, MapPin, Package, AlertCircle, RefreshCw, Hash, FileText } from 'lucide-react';
+import { 
+    Monitor, Armchair, Utensils, Layers, Calendar, DollarSign, MapPin, 
+    Package, AlertCircle, RefreshCw, Hash, FileText, CheckCircle2, 
+    AlertTriangle, ArrowRightLeft, Clock 
+} from 'lucide-react';
 import { formatCurrency, formatDate, getAssetTypeLabel, calculateTotalValue } from '../../utils/formatters';
 import { useAssets } from '../../context/AssetContext';
+import TransferLocationModal from './TransferLocationModal';
 import logo3Ramd from '../../assets/logo-3ramd.png';
 
 const QRAssetView = ({ assetId }) => {
-    const { assets, loading, error, refreshAssets } = useAssets();
+    const { assets, loading, error, refreshAssets, verifyAssetAudit } = useAssets();
     const [asset, setAsset] = useState(null);
+    const [isTransferOpen, setIsTransferOpen] = useState(false);
+    const [auditFeedback, setAuditFeedback] = useState(null);
 
     useEffect(() => {
         if (assets.length > 0 && assetId) {
@@ -237,6 +244,68 @@ const QRAssetView = ({ assetId }) => {
                         </div>
                     </div>
 
+                    {/* Mobile Audit Action Bar */}
+                    <div className="bg-white p-3.5 rounded-2xl shadow-sm border border-gray-100 space-y-2.5">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Status Pemeriksaan Stok</span>
+                            {asset.auditStatus === 'verified' && (
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase flex items-center gap-1">
+                                    <CheckCircle2 size={11} /> Sah & Ada
+                                </span>
+                            )}
+                            {asset.auditStatus === 'damaged' && (
+                                <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-[10px] font-black uppercase flex items-center gap-1">
+                                    <AlertTriangle size={11} /> Rosak
+                                </span>
+                            )}
+                            {asset.auditStatus === 'missing' && (
+                                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black uppercase flex items-center gap-1">
+                                    Hilang
+                                </span>
+                            )}
+                            {(!asset.auditStatus || asset.auditStatus === 'pending') && (
+                                <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[10px] font-black uppercase flex items-center gap-1">
+                                    <Clock size={11} /> Belum Semak
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button
+                                onClick={async () => {
+                                    await verifyAssetAudit(asset.id, 'verified', 'Disahkan melalui imbasan QR telefon');
+                                    setAuditFeedback('Aset disahkan hadir dan berkeadaan baik!');
+                                    setTimeout(() => setAuditFeedback(null), 2500);
+                                }}
+                                className="flex-1 py-2 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1 shadow-sm shadow-emerald-200"
+                            >
+                                <CheckCircle2 size={13} /> Sahkan
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    await verifyAssetAudit(asset.id, 'damaged', 'Kerosakan dilaporkan melalui imbasan QR');
+                                    setAuditFeedback('Kerosakan telah dilaporkan!');
+                                    setTimeout(() => setAuditFeedback(null), 2500);
+                                }}
+                                className="flex-1 py-2 px-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1 shadow-sm shadow-red-200"
+                            >
+                                <AlertTriangle size={13} /> Rosak
+                            </button>
+                            <button
+                                onClick={() => setIsTransferOpen(true)}
+                                className="flex-1 py-2 px-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1 shadow-sm shadow-amber-200"
+                            >
+                                <ArrowRightLeft size={13} /> Pindah
+                            </button>
+                        </div>
+
+                        {auditFeedback && (
+                            <p className="text-[11px] text-center font-black text-emerald-600 animate-in fade-in">
+                                {auditFeedback}
+                            </p>
+                        )}
+                    </div>
+
                     {/* Value Summary */}
                     <div className="mt-auto pt-2">
                         <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-4 flex items-center justify-between shadow-lg shadow-gray-200">
@@ -257,6 +326,15 @@ const QRAssetView = ({ assetId }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Transfer Location Modal */}
+            {isTransferOpen && (
+                <TransferLocationModal
+                    asset={asset}
+                    isOpen={isTransferOpen}
+                    onClose={() => setIsTransferOpen(false)}
+                />
+            )}
         </div>
     );
 };

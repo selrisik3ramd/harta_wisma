@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Home, Folder, PieChart, Menu, X, Settings, LogOut } from 'lucide-react';
+import { Home, Folder, PieChart, Menu, X, Settings, LogOut, ClipboardCheck } from 'lucide-react';
 import logo3Ramd from '../../assets/logo-3ramd.png';
 
-const Sidebar = ({ isOpen, toggleSidebar, currentView, setCurrentView }) => {
+const Sidebar = ({ isOpen, toggleSidebar, currentView, setCurrentView, onOpenSettings }) => {
     const menuItems = [
         { icon: Home, label: 'Papan Pemuka', id: 'dashboard' },
-        { icon: Folder, label: 'Aset', id: 'assets' },
-        { icon: PieChart, label: 'Laporan', id: 'reports' },
+        { icon: Folder, label: 'Senarai Aset', id: 'assets' },
+        { icon: ClipboardCheck, label: 'Audit / Stocktake', id: 'stocktake' },
+        { icon: PieChart, label: 'Laporan & Analitik', id: 'reports' },
     ];
 
     const handleItemClick = (id) => {
@@ -90,13 +91,12 @@ const Sidebar = ({ isOpen, toggleSidebar, currentView, setCurrentView }) => {
 
                     {/* Bottom Actions */}
                     <div className="mt-auto pt-6 border-t border-gray-100 space-y-1">
-                        <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 group">
+                        <button 
+                            onClick={onOpenSettings}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 group"
+                        >
                             <Settings size={20} className="text-gray-400 group-hover:text-gray-900" />
-                            Tetapan
-                        </button>
-                        <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 transition-all duration-200">
-                            <LogOut size={20} />
-                            Log Keluar
+                            Tetapan Pangkalan Data
                         </button>
                     </div>
                 </div>
