@@ -145,9 +145,9 @@ const QRAssetView = ({ assetId }) => {
         <div className="h-[100dvh] w-full bg-gray-50 flex flex-col overflow-hidden fixed inset-0">
             {/* Minimal Header */}
             <div className="absolute top-0 inset-x-0 p-4 flex justify-between items-center z-20">
-                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/30 shadow-sm">
-                    <img src={logo3Ramd} alt="Logo" className="w-6 h-6 rounded-full bg-white object-contain p-0.5" />
-                    <span className="text-white font-black text-[10px] uppercase tracking-widest drop-shadow-md">BN 3 RAMD</span>
+                <div className="flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-amber-500/30 shadow-md">
+                    <img src={logo3Ramd} alt="Akinabalu Warriors Logo" className="w-6 h-6 rounded-full bg-slate-900 object-contain p-0.5 ring-1 ring-amber-400" />
+                    <span className="text-amber-300 font-black text-[10px] uppercase tracking-widest drop-shadow-md">AKINABALU WARRIORS • 3 RAMD</span>
                 </div>
                 <a
                     href="/"

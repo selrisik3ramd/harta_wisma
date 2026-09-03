@@ -6,14 +6,12 @@ const MainLayout = ({ children, currentView, setCurrentView, onOpenScanner, onOp
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans relative isolate">
-            {/* Backdrop Image */}
-            <div className="fixed inset-0 z-[-1] opacity-25">
-                <img
-                    src="/backdrop.jpg"
-                    alt="Background"
-                    className="w-full h-full object-cover"
-                />
+        <div className="min-h-screen bg-slate-50/70 font-sans relative isolate selection:bg-amber-500 selection:text-white">
+            {/* Modern Subtle Ambient Gradient Background */}
+            <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+                <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-amber-200/20 rounded-full blur-[120px]" />
+                <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-slate-200/40 rounded-full blur-[100px]" />
+                <div className="absolute top-1/2 left-1/3 w-[400px] h-[400px] bg-yellow-100/30 rounded-full blur-[100px]" />
             </div>
 
             <Sidebar
@@ -24,7 +22,7 @@ const MainLayout = ({ children, currentView, setCurrentView, onOpenScanner, onOp
                 onOpenSettings={onOpenSettings}
             />
 
-            <div className={`lg:pl-64 flex flex-col min-h-screen transition-all duration-300 relative`}>
+            <div className={`lg:pl-72 flex flex-col min-h-screen transition-all duration-300 relative`}>
                 <Header 
                     toggleSidebar={() => setSidebarOpen(!sidebarOpen)} 
                     onOpenScanner={onOpenScanner}

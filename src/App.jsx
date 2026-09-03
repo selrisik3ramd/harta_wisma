@@ -21,62 +21,86 @@ function DashboardContent({ onOpenScanner, onOpenSettings }) {
 
   return (
     <>
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-xl shadow-amber-100 ring-4 ring-amber-50 p-1">
-            <img src={logo3Ramd} alt="3 RAMD Logo" className="w-full h-full object-contain" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tighter leading-none">
-              WISMA PERWIRA <span className="text-amber-600 text-lg block sm:inline sm:ml-2">BN 3 RAMD</span>
-            </h1>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">PENGURUSAN INVENTORI ASET</span>
-              <span className="h-1 w-1 bg-gray-300 rounded-full"></span>
-              <span className="px-2 py-0.5 bg-emerald-600 text-white text-[9px] font-black rounded shadow-sm">
-                SISTEM KIK 2026 STABLE
-              </span>
+      {/* Executive Command Hero Banner */}
+      <div className="relative rounded-3xl bg-gradient-to-br from-slate-950 via-gray-900 to-slate-900 text-white p-6 sm:p-8 shadow-2xl border border-amber-500/20 overflow-hidden mb-8">
+        {/* Ambient Golden Radial Glow */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-amber-500/15 via-yellow-600/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-amber-600/10 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+          {/* Left: Unit Identity & Crest */}
+          <div className="flex items-center gap-5">
+            <div className="relative group shrink-0">
+              <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-500"></div>
+              <div className="relative w-20 h-20 rounded-full bg-slate-950 ring-2 ring-amber-400/50 p-1 shadow-2xl flex items-center justify-center">
+                <img 
+                  src={logo3Ramd} 
+                  alt="Akinabalu Warriors Crest" 
+                  className="w-full h-full object-contain filter drop-shadow-md" 
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-3 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-black uppercase tracking-widest">
+                  PORTAL RASMI INVENTORI ASET
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                  SISTEM AKTIF
+                </span>
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                WISMA PERWIRA <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500">BN 3 RAMD</span>
+              </h1>
+
+              <p className="text-xs text-slate-300 font-medium max-w-xl">
+                Pengurusan Aset Pintar Berasaskan Kod QR • Home of the Akinabalu Warriors
+              </p>
             </div>
           </div>
-        </div>
 
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => refreshAssets()}
-            disabled={loading}
-            className="p-4 bg-white border-2 border-gray-100 hover:border-amber-100 text-gray-400 hover:text-amber-600 rounded-2xl transition-all shadow-sm hover:shadow-amber-50 flex items-center justify-center disabled:opacity-50"
-            title="Refresh Data"
-          >
-            <RefreshCw size={24} className={loading ? "animate-spin" : ""} />
-          </button>
+          {/* Right: Quick Action Controls */}
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+            <button
+              onClick={() => refreshAssets()}
+              disabled={loading}
+              className="p-3.5 bg-white/10 hover:bg-white/20 border border-white/15 text-slate-200 hover:text-white rounded-2xl transition-all shadow-sm flex items-center justify-center disabled:opacity-50"
+              title="Segar Semula Pangkalan Data"
+            >
+              <RefreshCw size={20} className={loading ? "animate-spin text-amber-400" : ""} />
+            </button>
 
-          <button
-            onClick={onOpenSettings}
-            className="p-4 bg-white border-2 border-gray-100 hover:border-amber-100 text-gray-400 hover:text-amber-600 rounded-2xl transition-all shadow-sm hover:shadow-amber-50 flex items-center justify-center"
-            title="Database Settings"
-          >
-            <Settings size={24} />
-          </button>
+            <button
+              onClick={onOpenSettings}
+              className="p-3.5 bg-white/10 hover:bg-white/20 border border-white/15 text-slate-200 hover:text-white rounded-2xl transition-all shadow-sm flex items-center justify-center"
+              title="Tetapan Sambungan Pangkalan Data"
+            >
+              <Settings size={20} />
+            </button>
 
-          <button
-            onClick={onOpenScanner}
-            className="group flex items-center justify-center gap-2.5 px-6 py-4 bg-gradient-to-r from-gray-900 via-gray-800 to-amber-950 hover:from-black hover:to-amber-900 text-amber-400 font-black rounded-2xl transition-all shadow-xl shadow-gray-200 hover:scale-[1.02] active:scale-[0.98] border border-amber-500/20"
-          >
-            <div className="bg-amber-500/20 p-1.5 rounded-xl text-amber-400 group-hover:scale-110 transition-transform">
-              <Camera size={20} />
-            </div>
-            IMBAS QR KAMERA
-          </button>
+            <button
+              onClick={onOpenScanner}
+              className="flex items-center gap-2.5 px-5 py-3.5 bg-slate-900/90 hover:bg-black border border-amber-500/30 text-amber-300 font-extrabold rounded-2xl transition-all shadow-lg hover:shadow-amber-500/10 hover:scale-[1.02] active:scale-[0.98] text-xs uppercase tracking-wider"
+            >
+              <div className="bg-amber-500/20 p-1 rounded-lg text-amber-400">
+                <Camera size={18} />
+              </div>
+              Imbas QR Kamera
+            </button>
 
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="group flex items-center justify-center gap-3 px-8 py-4 bg-amber-600 hover:bg-amber-700 text-white font-black rounded-2xl transition-all shadow-xl shadow-amber-200 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <div className="bg-white/20 p-1 rounded-lg group-hover:rotate-90 transition-transform">
-              <Plus size={20} className="text-white" />
-            </div>
-            TAMBAH ASET BARU
-          </button>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2.5 px-6 py-3.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-slate-950 font-black rounded-2xl transition-all shadow-xl shadow-amber-500/20 hover:scale-[1.02] active:scale-[0.98] text-xs uppercase tracking-wider"
+            >
+              <div className="bg-slate-950/20 p-1 rounded-lg">
+                <Plus size={18} className="text-slate-950 font-black" />
+              </div>
+              Tambah Aset Baharu
+            </button>
+          </div>
         </div>
       </div>
 
