@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Menu, User, QrCode, Shield, Clock, Lock, LogOut } from 'lucide-react';
+import { Menu, User, QrCode, Shield, Clock, Lock, LogOut, Smartphone } from 'lucide-react';
 import logo3Ramd from '../../assets/logo-3ramd.png';
 import DepartmentSwitcher from '../Navigation/DepartmentSwitcher';
 import { useAuth } from '../../context/AuthContext';
+import { usePWAInstall, InstallModal } from '../Common/InstallAppPrompt';
 
 const Header = ({ toggleSidebar, onOpenScanner, onOpenLogin }) => {
     const [currentTime, setCurrentTime] = useState('');
+    const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
     const { currentUser, isAuthenticated, logout } = useAuth();
+    const { isInstalled, isIOS, triggerInstall } = usePWAInstall();
 
     useEffect(() => {
         const updateTime = () => {
@@ -63,6 +66,18 @@ const Header = ({ toggleSidebar, onOpenScanner, onOpenLogin }) => {
                     <span>{currentTime || '00:00:00 MYT'}</span>
                 </div>
 
+                {/* Add to Home Screen (PWA) Button */}
+                {!isInstalled && (
+                    <button
+                        onClick={() => setIsInstallModalOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-slate-900/90 hover:bg-slate-950 border border-amber-500/40 text-amber-300 font-extrabold rounded-xl shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98] text-xs uppercase tracking-wider"
+                        title="Tambah ke Skrin Utama Telefon (Add to Home Screen)"
+                    >
+                        <Smartphone size={15} className="text-amber-400 animate-pulse" />
+                        <span className="hidden md:inline">Pasang App</span>
+                    </button>
+                )}
+
                 {/* Quick Scan Button */}
                 <button
                     onClick={onOpenScanner}
@@ -107,6 +122,13 @@ const Header = ({ toggleSidebar, onOpenScanner, onOpenLogin }) => {
                     </button>
                 )}
             </div>
+
+            <InstallModal
+                isOpen={isInstallModalOpen}
+                onClose={() => setIsInstallModalOpen(false)}
+                isIOS={isIOS}
+                triggerInstall={triggerInstall}
+            />
         </header>
     );
 };

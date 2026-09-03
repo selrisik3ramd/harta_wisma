@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { Home, Folder, PieChart, Menu, X, Settings, LogOut, ClipboardCheck, Lock } from 'lucide-react';
+import { Home, Folder, PieChart, Menu, X, Settings, LogOut, ClipboardCheck, Lock, Smartphone } from 'lucide-react';
 import logo3Ramd from '../../assets/logo-3ramd.png';
 import DepartmentSwitcher from '../Navigation/DepartmentSwitcher';
 import { useAuth } from '../../context/AuthContext';
+import { usePWAInstall, InstallModal } from '../Common/InstallAppPrompt';
 
 const Sidebar = ({ isOpen, toggleSidebar, currentView, setCurrentView, onOpenSettings, onOpenLogin }) => {
+    const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
     const { currentUser, isAuthenticated, logout } = useAuth();
+    const { isInstalled, isIOS, triggerInstall } = usePWAInstall();
     const menuItems = [
         { icon: Home, label: 'Papan Pemuka', id: 'dashboard' },
         { icon: Folder, label: 'Senarai Aset', id: 'assets' },
@@ -142,6 +145,16 @@ const Sidebar = ({ isOpen, toggleSidebar, currentView, setCurrentView, onOpenSet
                             </button>
                         )}
 
+                        {!isInstalled && (
+                            <button 
+                                onClick={() => setIsInstallModalOpen(true)}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-all text-xs font-bold group cursor-pointer"
+                            >
+                                <Smartphone size={16} className="text-amber-400 group-hover:scale-110 transition-transform" />
+                                <span>Pasang di Telefon</span>
+                            </button>
+                        )}
+
                         <button 
                             onClick={onOpenSettings}
                             className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:bg-slate-800/60 hover:text-amber-400 transition-all text-xs font-semibold group"
@@ -159,6 +172,13 @@ const Sidebar = ({ isOpen, toggleSidebar, currentView, setCurrentView, onOpenSet
                         </div>
                     </div>
                 </div>
+
+                <InstallModal
+                    isOpen={isInstallModalOpen}
+                    onClose={() => setIsInstallModalOpen(false)}
+                    isIOS={isIOS}
+                    triggerInstall={triggerInstall}
+                />
             </aside>
         </>
     );
