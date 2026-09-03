@@ -8,14 +8,21 @@ const DepartmentSwitcher = ({ className = '' }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
-    const activeDept = getDepartmentById(currentDepartment);
+    const activeDept = getDepartmentById(currentDepartment) || { 
+        id: 'wisma_perwira', 
+        name: 'Wisma Perwira 3 RAMD', 
+        shortName: 'Wisma Perwira', 
+        description: 'Inventori Wisma Perwira' 
+    };
 
-    // Calculate asset count per department
-    const counts = DEPARTMENTS.reduce((acc, dept) => {
+    const safeAssets = Array.isArray(assets) ? assets : [];
+
+    // Calculate asset count per department safely
+    const counts = (DEPARTMENTS || []).reduce((acc, dept) => {
         if (dept.id === 'all') {
-            acc[dept.id] = assets.length;
+            acc[dept.id] = safeAssets.length;
         } else {
-            acc[dept.id] = assets.filter(a => (a.department || 'wisma_perwira') === dept.id).length;
+            acc[dept.id] = safeAssets.filter(a => (a?.department || 'wisma_perwira') === dept.id).length;
         }
         return acc;
     }, {});

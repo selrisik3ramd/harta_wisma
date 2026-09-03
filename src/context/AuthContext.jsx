@@ -72,7 +72,9 @@ export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(() => {
         try {
             const saved = localStorage.getItem('eharta_auth_user');
-            return saved ? JSON.parse(saved) : null;
+            if (!saved) return null;
+            const parsed = JSON.parse(saved);
+            return (parsed && typeof parsed === 'object' && parsed.role) ? parsed : null;
         } catch {
             return null;
         }

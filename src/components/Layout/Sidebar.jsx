@@ -129,8 +129,8 @@ const Sidebar = ({ isOpen, toggleSidebar, currentView, setCurrentView, onOpenSet
                                         <LogOut size={12} /> Log Keluar
                                     </button>
                                 </div>
-                                <p className="font-bold text-white text-xs truncate">{currentUser.name}</p>
-                                <p className="text-[10px] text-slate-400 truncate">{currentUser.roleTitle}</p>
+                                <p className="font-bold text-white text-xs truncate">{currentUser?.name || 'Pentadbir'}</p>
+                                <p className="text-[10px] text-slate-400 truncate">{currentUser?.roleTitle || ''}</p>
                             </div>
                         ) : (
                             <button

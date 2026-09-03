@@ -100,10 +100,11 @@ export const AssetProvider = ({ children }) => {
         loadAssets();
     }, []);
 
-    // Filtered assets based on selected department
+    // Filtered assets based on selected department safely
+    const safeAssets = Array.isArray(assets) ? assets : [];
     const departmentAssets = currentDepartment === 'all' 
-        ? assets 
-        : assets.filter(a => (a.department || 'wisma_perwira') === currentDepartment);
+        ? safeAssets 
+        : safeAssets.filter(a => (a?.department || 'wisma_perwira') === currentDepartment);
 
     const addAsset = async (asset) => {
         const targetDept = asset.department || (currentDepartment !== 'all' ? currentDepartment : 'wisma_perwira');

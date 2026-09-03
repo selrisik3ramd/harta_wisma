@@ -23,7 +23,12 @@ function DashboardContent({ onOpenScanner, onOpenSettings, onOpenLogin }) {
   const { assets, departmentAssets, currentDepartment, loading, refreshAssets } = useAssets();
   const { isAuthenticated, currentUser, canManage } = useAuth();
 
-  const activeDept = getDepartmentById(currentDepartment);
+  const activeDept = getDepartmentById(currentDepartment) || {
+    id: 'wisma_perwira',
+    name: 'Wisma Perwira 3 RAMD',
+    shortName: 'Wisma Perwira',
+    description: 'Inventori Wisma Perwira'
+  };
   const hasWritePermission = canManage(currentDepartment);
 
   const handleAddAssetClick = () => {
@@ -68,16 +73,16 @@ function DashboardContent({ onOpenScanner, onOpenSettings, onOpenLogin }) {
                     ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' 
                     : 'bg-slate-800 text-slate-400 border-slate-700'
                 }`}>
-                  {isAuthenticated ? `PENTADBIR: ${currentUser.rank || currentUser.name}` : 'MOD PAPARAN AWAM'}
+                  {isAuthenticated ? `PENTADBIR: ${currentUser?.rank || currentUser?.name || 'PENTADBIR'}` : 'MOD PAPARAN AWAM'}
                 </span>
               </div>
 
               <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                {activeDept.name.toUpperCase()}
+                {(activeDept?.name || 'E-HARTA 3 RAMD').toUpperCase()}
               </h1>
 
               <p className="text-xs text-slate-300 font-medium max-w-xl">
-                {activeDept.description} • Home of the Akinabalu Warriors
+                {activeDept?.description || 'Pengurusan Aset'} • Home of the Akinabalu Warriors
               </p>
             </div>
           </div>

@@ -83,7 +83,7 @@ const Header = ({ toggleSidebar, onOpenScanner, onOpenLogin }) => {
                         </div>
                         <div className="hidden sm:flex flex-col text-left pr-1 max-w-[140px]">
                             <span className="text-xs font-bold text-slate-900 leading-none truncate">
-                                {currentUser.name}
+                                {currentUser?.name || 'Pentadbir'}
                             </span>
                             <span className="text-[9px] text-emerald-700 font-extrabold uppercase mt-0.5 truncate">
                                 Pentadbir Sah
